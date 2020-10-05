@@ -49,12 +49,6 @@ processResources {
     }
 }
 
-compileJava {
-    options.compilerArgs += ["-parameters"]
-    options.fork = true
-    options.forkOptions.executable = 'javac'
-}
-
 shadowJar {
     relocate 'co.aikar.commands', 'shadded.acf'
     relocate 'co.aikar.locales', 'shadded.acf.locales'
