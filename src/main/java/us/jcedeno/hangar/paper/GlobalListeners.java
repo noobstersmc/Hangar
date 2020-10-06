@@ -23,7 +23,7 @@ import org.bukkit.event.EventHandler;
 
 public class GlobalListeners implements Listener {
     Hangar instance;
-    private Location spawnLoc = Bukkit.getWorlds().get(0).getBlockAt(416, 48, 9).getLocation();
+    private Location spawnLoc = Bukkit.getWorlds().get(0).getBlockAt(417, 48, 9).getLocation();
 
     public GlobalListeners(Hangar instance){
         this.instance = instance;
@@ -36,7 +36,7 @@ public class GlobalListeners implements Listener {
         var header = ChatColor.of("#A40A0A") + "" + ChatColor.BOLD + "\nNOOBSTERS\n";
         var footer = ChatColor.of("#4788d9") + "\nJoin Our Community!\n" + ChatColor.of("#2be49c")
                 + "discord.noobsters.net\n" + ChatColor.AQUA
-                + "twitter.com/NoobstersMC\n";
+                + "twitter.com/NoobstersMC\n " + ChatColor.GOLD + "noobsters.buycraft.net\n";
 
         e.getPlayer().setPlayerListHeaderFooter(header, footer);
         e.getPlayer().teleport(spawnLoc);
@@ -56,10 +56,17 @@ public class GlobalListeners implements Listener {
         e.setQuitMessage("");
     }
 
+    @EventHandler
     public void onDamage(EntityDamageByEntityEvent e){
-        if(e.getEntity().getType() == EntityType.PLAYER){
+        if(e.getDamager().getType() == EntityType.PLAYER && e.getEntity().getType() == EntityType.PLAYER) 
             e.setCancelled(true);
-        }
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageEvent e) {
+        if (e.getEntityType() == EntityType.PLAYER && e.getCause() == EntityDamageEvent.DamageCause.FALL)
+            e.setCancelled(true);
+
     }
 
     @EventHandler
@@ -96,7 +103,7 @@ public class GlobalListeners implements Listener {
     }
 
     @EventHandler
-    public void onDamage(EntityDamageEvent e) {
+    public void onDamageMap(EntityDamageEvent e) {
         switch (e.getEntityType()) {
             case ARMOR_STAND:
             case ITEM_FRAME:

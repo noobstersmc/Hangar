@@ -1,5 +1,5 @@
 name: Hangar
 version: ${version}
-main: us.jcedeno.hangar.paper.HangarPlugin
+main: us.jcedeno.hangar.paper.Hangar
 api-version: 1.16
 api: ["1.16"]
