@@ -40,6 +40,9 @@ dependencies {
     compile 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     //Scoreboard, maybe use helper by lucko?
     compile 'fr.mrmicky:FastInv:3.0.2'
+    //okhttp
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 processResources {
@@ -55,6 +58,9 @@ shadowJar {
     relocate 'acf-minecraft_', 'shadded.acf.properties.acf-minecraft_'
     relocate 'acf-core_', 'shadded.acf.properties.acf-core_'
     relocate 'fr.mrmicky', 'shadded.gui'
+    relocate 'okhttp3', 'shadded.okhttp3'
+    relocate 'okio', 'shadded.okio'
+    relocate 'kotlin', 'shadded.kotlin'
     
 }
 

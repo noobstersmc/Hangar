@@ -1,7 +1,20 @@
 package us.jcedeno.hangar.paper;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -9,23 +22,11 @@ import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 
 import net.md_5.bungee.api.ChatColor;
 
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.event.EventHandler;
-
 public class GlobalListeners implements Listener {
     Hangar instance;
-    private Location spawnLoc = Bukkit.getWorlds().get(0).getBlockAt(417, 48, 9).getLocation();
+    private Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0, 2.0, 0);
 
-    public GlobalListeners(Hangar instance){
+    public GlobalListeners(Hangar instance) {
         this.instance = instance;
     }
 
@@ -35,14 +36,13 @@ public class GlobalListeners implements Listener {
                 + "Twitter! twitter.com/NoobstersMC\n" + ChatColor.GOLD + "Donations! noobsters.buycraft.net");
         var header = ChatColor.of("#A40A0A") + "" + ChatColor.BOLD + "\nNOOBSTERS\n";
         var footer = ChatColor.of("#4788d9") + "\nJoin Our Community!\n" + ChatColor.of("#2be49c")
-                + "discord.noobsters.net\n" + ChatColor.AQUA
-                + "twitter.com/NoobstersMC\n " + ChatColor.GOLD + "noobsters.buycraft.net\n";
+                + "discord.noobsters.net\n" + ChatColor.AQUA + "twitter.com/NoobstersMC\n " + ChatColor.GOLD
+                + "noobsters.buycraft.net\n";
 
         e.getPlayer().setPlayerListHeaderFooter(header, footer);
         e.getPlayer().teleport(spawnLoc);
         e.setJoinMessage("");
     }
-
 
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
@@ -50,15 +50,15 @@ public class GlobalListeners implements Listener {
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
                     "&fServer is full! \n &aGet your rank at noobstersuhc.buycraft.net"));
     }
-    
+
     @EventHandler
-    public void onQuit(PlayerQuitEvent e){
+    public void onQuit(PlayerQuitEvent e) {
         e.setQuitMessage("");
     }
 
     @EventHandler
-    public void onDamage(EntityDamageByEntityEvent e){
-        if(e.getDamager().getType() == EntityType.PLAYER && e.getEntity().getType() == EntityType.PLAYER) 
+    public void onDamage(EntityDamageByEntityEvent e) {
+        if (e.getDamager().getType() == EntityType.PLAYER && e.getEntity().getType() == EntityType.PLAYER)
             e.setCancelled(true);
     }
 
@@ -91,14 +91,14 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onPlayerLectern(PlayerTakeLecternBookEvent e) {
         if (!e.getPlayer().hasPermission("lobby.edit"))
-        e.setCancelled(true);
+            e.setCancelled(true);
     }
 
     @EventHandler
     public void onEntity(PlayerInteractAtEntityEvent e) {
         if (e.getRightClicked() == null || e.getRightClicked().getType() != EntityType.ARMOR_STAND)
             return;
-        else if(!e.getPlayer().hasPermission("lobby.edit"))
+        else if (!e.getPlayer().hasPermission("lobby.edit"))
             e.setCancelled(true);
     }
 
@@ -136,6 +136,12 @@ public class GlobalListeners implements Listener {
         }
     }
 
+    @EventHandler
+    public void onclick(PlayerInteractEvent e) {
+        if (e.getItem().getType() == Material.COMPASS) {
+            instance.getServerGui().open(e.getPlayer());
 
+        }
+    }
 
 }
