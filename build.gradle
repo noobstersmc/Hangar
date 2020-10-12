@@ -43,6 +43,8 @@ dependencies {
     //okhttp
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
     implementation 'com.google.code.gson:gson:2.8.6'
+    //Caffeine
+    compile 'com.github.ben-manes.caffeine:caffeine:2.8.6'
 }
 
 processResources {
@@ -61,6 +63,8 @@ shadowJar {
     relocate 'okhttp3', 'shadded.okhttp3'
     relocate 'okio', 'shadded.okio'
     relocate 'kotlin', 'shadded.kotlin'
+    relocate 'com.github.benmanes.caffeine', 'shadded.com.github.benmanes.caffeine'
+    relocate 'com.google.errorprone', 'shadded.com.google.errorprone'
     
 }
 

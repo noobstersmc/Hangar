@@ -8,10 +8,13 @@ public class GameData {
     Long startTime;
     int gameTime;
     boolean pvp;
-    int uhcSlots;
+    int uhcslots;
     String gameStage;
+    int playersOnline;
     int playersAlive;
     int spectators;
-    String[] scenarios;
+    String scenarios;
+    String gameType;
+    String hostname;
     
 }
