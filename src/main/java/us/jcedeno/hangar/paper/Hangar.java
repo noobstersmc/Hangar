@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import co.aikar.commands.PaperCommandManager;
 import fr.mrmicky.fastinv.FastInv;
 import fr.mrmicky.fastinv.FastInvManager;
 import fr.mrmicky.fastinv.ItemBuilder;
@@ -29,6 +30,8 @@ public class Hangar extends JavaPlugin {
     private @Getter FastInv serverGui = new FastInv(InventoryType.HOPPER, "UHC Servers");
     // private @Getter HashMap<String, GameData> gameDataMap = new HashMap<>();
     private @Getter Cache<String, GameData> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).build();
+    private @Getter PaperCommandManager commandManager;
+    private @Getter Arena arena;
 
     // GUI tutorial: https://github.com/MrMicky-FR/FastInv
     // Scoreboard Tutorial: https://github.com/MrMicky-FR/FastBoard
@@ -37,6 +40,13 @@ public class Hangar extends JavaPlugin {
     public void onEnable() {
         FastInvManager.register(this);
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
+        this.arena = new Arena(this);
+
+        this.getServer().getPluginManager().registerEvents(this.arena, this);
+
+        this.commandManager = new PaperCommandManager(this);
+        this.commandManager.registerCommand(this.arena);
 
         Bukkit.getPluginManager().registerEvents(new GlobalListeners(this), this);
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
@@ -92,18 +102,34 @@ public class Hangar extends JavaPlugin {
             case "lobby":
             case "scatter": {
                 itemBuilder = itemBuilder.addLore(
-                        titleColor + "Players: " + ChatColor.WHITE + data.getPlayersOnline() + "/" + data.getUhcslots(),
-                        titleColor + "Config: " + ChatColor.WHITE + data.getGameType() + " " + data.getScenarios());
+                        titleColor + "Config: " + ChatColor.WHITE + data.getGameType() + " " + data.getScenarios(), "",
+                        titleColor + "Players: " + ChatColor.WHITE + data.getPlayersOnline() + "/"
+                                + data.getUhcslots());
 
                 break;
             }
             case "ingame": {
+                itemBuilder = itemBuilder.addLore(
+                        titleColor + "Config: " + ChatColor.WHITE + data.getGameType() + " " + data.getScenarios(), "",
+                        titleColor + "Game Time: " + ChatColor.WHITE + timeConvert(data.getGameTime()),
+                        titleColor + "Players Alive: " + ChatColor.WHITE + data.getPlayersAlive(),
+                        titleColor + "Spectators: " + ChatColor.WHITE + data.getSpectators());
 
                 break;
             }
         }
 
         return itemBuilder.build();
+    }
+
+    private String timeConvert(int t) {
+        int hours = t / 3600;
+
+        int minutes = (t % 3600) / 60;
+        int seconds = t % 60;
+
+        return hours > 0 ? String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                : String.format("%02d:%02d", minutes, seconds);
     }
 
     public void sendToProxy(Player player, String server) {

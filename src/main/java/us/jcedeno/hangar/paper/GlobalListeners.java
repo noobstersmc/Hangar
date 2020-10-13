@@ -3,6 +3,7 @@ package us.jcedeno.hangar.paper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,6 +26,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
 import fr.mrmicky.fastinv.ItemBuilder;
@@ -33,6 +35,7 @@ import net.md_5.bungee.api.ChatColor;
 public class GlobalListeners implements Listener {
     private Hangar instance;
     private static String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
+    private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena FFA";
     private Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0, 2.0, 0);
 
     public GlobalListeners(Hangar instance) {
@@ -80,17 +83,22 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onTranscieverMove(InventoryClickEvent e) {
         if ((e.getCursor() != null && isTransceiver(e.getCursor()))
-                || (e.getCurrentItem() != null && isTransceiver(e.getCurrentItem())))
+                || (e.getCurrentItem() != null && isTransceiver(e.getCurrentItem()))) {
             e.setCancelled(true);
+            return;
+        }
 
         if (e.getClick() == ClickType.NUMBER_KEY) {
             var button = e.getHotbarButton();
             var hotbarItem = e.getClickedInventory().getItem(button);
             if (hotbarItem != null && isTransceiver(hotbarItem)) {
                 e.setCancelled(true);
+                return;
             }
         }
         if (e.getClickedInventory() != null && e.getClickedInventory().getType() != InventoryType.PLAYER) {
+            Bukkit.broadcastMessage(e.getClickedInventory().getItem(e.getHotbarButton()).getType().name());
+
             e.setCancelled(true);
         }
 
@@ -117,7 +125,10 @@ public class GlobalListeners implements Listener {
         inv.clear();
         inv.setArmorContents(null);
         // Add transceiver to slot 4 (5) on the hotbar
-        inv.setItem(4, new ItemBuilder(Material.NETHER_STAR).name(TRANSCEIVER_NAME).build());
+        inv.setItem(4, new ItemBuilder(Material.NETHER_STAR).name(TRANSCEIVER_NAME).enchant(Enchantment.VANISHING_CURSE)
+        .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
+        inv.setItem(0, new ItemBuilder(Material.NETHERITE_SWORD).name(ARENA_NAME).enchant(Enchantment.VANISHING_CURSE)
+                .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).unbreakable(true).build());
     }
     /*
      * Transciever code ends
@@ -128,26 +139,12 @@ public class GlobalListeners implements Listener {
         if (Bukkit.getOnlinePlayers().size() >= 100 && !e.getPlayer().hasPermission("reserved.slot"))
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
                     "&fServer is full! \n &aGet your rank at noobstersuhc.buycraft.net"));
-    }
 
-    
+    }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         e.setQuitMessage("");
-    }
-
-    @EventHandler
-    public void onDamage(EntityDamageByEntityEvent e) {
-        if (e.getDamager().getType() == EntityType.PLAYER && e.getEntity().getType() == EntityType.PLAYER)
-            e.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onDamage(EntityDamageEvent e) {
-        if (e.getEntityType() == EntityType.PLAYER && e.getCause() == EntityDamageEvent.DamageCause.FALL)
-            e.setCancelled(true);
-
     }
 
     @EventHandler
@@ -179,6 +176,7 @@ public class GlobalListeners implements Listener {
     public void onEntity(PlayerInteractAtEntityEvent e) {
         if (e.getRightClicked() == null || e.getRightClicked().getType() != EntityType.ARMOR_STAND)
             return;
+
         else if (!e.getPlayer().hasPermission("lobby.edit"))
             e.setCancelled(true);
     }
@@ -201,7 +199,7 @@ public class GlobalListeners implements Listener {
     }
 
     @EventHandler
-    public void onDamageByPlayer(EntityDamageByEntityEvent e) {
+    public void onEntityDamage(EntityDamageByEntityEvent e) {
         if (e.getDamager() instanceof Player && !e.getDamager().hasPermission("lobby.edit")) {
             switch (e.getEntity().getType()) {
                 case ARMOR_STAND:
