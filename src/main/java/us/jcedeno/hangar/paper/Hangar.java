@@ -92,6 +92,7 @@ public class Hangar extends JavaPlugin {
 
     }
 
+
     public ItemStack getItemFromEntry(Entry<String, GameData> entry, Material material) {
         final var data = entry.getValue();
         final var stage = data.getGameStage();

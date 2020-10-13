@@ -30,13 +30,14 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
 import fr.mrmicky.fastinv.ItemBuilder;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
 public class GlobalListeners implements Listener {
     private Hangar instance;
     private static String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
     private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena FFA";
-    private Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0, 2.0, 0);
+    private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0, 2.0, 0);
 
     public GlobalListeners(Hangar instance) {
         this.instance = instance;
@@ -118,17 +119,21 @@ public class GlobalListeners implements Listener {
                 && stack.getItemMeta().getDisplayName().equalsIgnoreCase(TRANSCEIVER_NAME);
     }
 
-    private void giveTransciever(final Player player) {
+    public static void giveTransciever(final Player player) {
         // Obtain the inventory
         final var inv = player.getInventory();
         // Cleanup the inventory
         inv.clear();
         inv.setArmorContents(null);
+        player.setLevel(0);
+        player.setExp(0);
+        player.setHealth(20);
+        player.getActivePotionEffects().forEach(a -> player.removePotionEffect(a.getType()));
         // Add transceiver to slot 4 (5) on the hotbar
         inv.setItem(4, new ItemBuilder(Material.NETHER_STAR).name(TRANSCEIVER_NAME).enchant(Enchantment.VANISHING_CURSE)
-        .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
+                .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
         inv.setItem(0, new ItemBuilder(Material.NETHERITE_SWORD).name(ARENA_NAME).enchant(Enchantment.VANISHING_CURSE)
-                .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).unbreakable(true).build());
+                .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
     }
     /*
      * Transciever code ends
@@ -141,10 +146,13 @@ public class GlobalListeners implements Listener {
                     "&fServer is full! \n &aGet your rank at noobstersuhc.buycraft.net"));
 
     }
-
+    
     @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
-        e.setQuitMessage("");
+    public void onBlockPlace(BlockPlaceEvent e) {
+        if (e.getPlayer().hasPermission("lobby.edit")) {
+            e.setCancelled(true);
+        }
+
     }
 
     @EventHandler
@@ -154,10 +162,8 @@ public class GlobalListeners implements Listener {
     }
 
     @EventHandler
-    public void onBlockPlace(BlockPlaceEvent e) {
-        if (!e.getPlayer().hasPermission("lobby.edit"))
-            e.setCancelled(true);
-
+    public void onQuit(PlayerQuitEvent e) {
+        e.setQuitMessage("");
     }
 
     @EventHandler
