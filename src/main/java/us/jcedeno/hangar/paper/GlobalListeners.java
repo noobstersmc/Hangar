@@ -17,7 +17,6 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -35,7 +34,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class GlobalListeners implements Listener {
     private Hangar instance;
-    private static String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
+    private static @Getter String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
     private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena FFA";
     private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0, 2.0, 0);
 
@@ -46,15 +45,16 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         var player = e.getPlayer();
-        player.sendMessage(ChatColor.BLUE + "Discord! discord.noobsters.net\n" + ChatColor.AQUA
-                + "Twitter! twitter.com/NoobstersMC\n" + ChatColor.GOLD + "Donations! noobsters.buycraft.net");
         var header = ChatColor.of("#A40A0A") + "" + ChatColor.BOLD + "\nNOOBSTERS\n";
         var footer = ChatColor.of("#4788d9") + "\nJoin Our Community!\n" + ChatColor.of("#2be49c")
                 + "discord.noobsters.net\n" + ChatColor.AQUA + "twitter.com/NoobstersMC\n " + ChatColor.GOLD
                 + "noobsters.buycraft.net\n";
 
         player.setPlayerListHeaderFooter(header, footer);
-        player.teleport(spawnLoc);
+        player.teleportAsync(spawnLoc).thenAccept(a->{
+            player.sendMessage(ChatColor.BLUE + "Discord! discord.noobsters.net\n" + ChatColor.AQUA
+            + "Twitter! twitter.com/NoobstersMC\n" + ChatColor.GOLD + "Donations! noobsters.buycraft.net");
+        });
         player.setFoodLevel(20);
         player.setSaturation(20F);
         e.setJoinMessage("");
@@ -69,6 +69,8 @@ public class GlobalListeners implements Listener {
     public void onTransceiverOpen(PlayerInteractEvent e) {
         if (e.getAction() != Action.PHYSICAL && e.getMaterial() == Material.NETHER_STAR) {
             instance.getServerGui().open(e.getPlayer());
+        }else if(e.getMaterial() == Material.NETHERITE_SWORD){
+            e.getPlayer().performCommand("arena");
         }
     }
 
@@ -96,11 +98,6 @@ public class GlobalListeners implements Listener {
                 e.setCancelled(true);
                 return;
             }
-        }
-        if (e.getClickedInventory() != null && e.getClickedInventory().getType() != InventoryType.PLAYER) {
-            Bukkit.broadcastMessage(e.getClickedInventory().getItem(e.getHotbarButton()).getType().name());
-
-            e.setCancelled(true);
         }
 
     }
@@ -149,7 +146,7 @@ public class GlobalListeners implements Listener {
     
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
-        if (e.getPlayer().hasPermission("lobby.edit")) {
+        if (!e.getPlayer().hasPermission("lobby.edit")) {
             e.setCancelled(true);
         }
 

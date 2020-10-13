@@ -53,6 +53,11 @@ processResources {
         include 'plugin.yml'
     }
 }
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
 
 shadowJar {
     relocate 'co.aikar.commands', 'shadded.acf'
