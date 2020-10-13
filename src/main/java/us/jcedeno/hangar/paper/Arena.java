@@ -218,14 +218,14 @@ public class Arena extends BaseCommand implements Listener {
         // DROPS
 
         e.getDrops().forEach(all -> {
-            if (all.getType() == Material.OAK_PLANKS || all.getType() == Material.BOOK)
-                return;
+            //if (all.getType() == Material.OAK_PLANKS || all.getType() == Material.BOOK)
+                //return;
             all.setType(Material.AIR);
 
         });
         e.getDrops().add(new ItemBuilder(Material.DIAMOND).amount(2).build());
         e.getDrops().add(new ItemBuilder(Material.ARROW).amount(4).build());
-        e.getDrops().add(new ItemBuilder(Material.GOLDEN_APPLE).amount(1).build());
+        e.getDrops().add(new ItemBuilder(Material.GOLDEN_APPLE).amount(2).build());
         var loc = e.getEntity().getLocation();
         loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(7);
 
