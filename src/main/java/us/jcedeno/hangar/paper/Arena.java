@@ -211,15 +211,15 @@ public class Arena extends BaseCommand implements Listener {
 
             cache.put(bits, newKills);
             // random drops
-            if (newKills >= 3) {
+            if (newKills >= 2) {
                 e.getDrops().add(new ItemBuilder(random.nextBoolean() ? Material.OAK_PLANKS : Material.BOOK).build());
             }
         }
         // DROPS
 
         e.getDrops().forEach(all -> {
-            //if (all.getType() == Material.OAK_PLANKS || all.getType() == Material.BOOK)
-                //return;
+            if (all.getType() == Material.OAK_PLANKS || all.getType() == Material.BOOK)
+                return;
             all.setType(Material.AIR);
 
         });

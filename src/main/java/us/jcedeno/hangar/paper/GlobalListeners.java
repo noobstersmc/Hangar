@@ -7,6 +7,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -27,6 +28,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffectType;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
@@ -217,5 +219,29 @@ public class GlobalListeners implements Listener {
             }
         }
     }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void nerfCriticalDamage(EntityDamageByEntityEvent e) {
+        if (e.getEntity().getType() != EntityType.PLAYER || e.getDamager().getType() != EntityType.PLAYER)
+            return;
+        var damager = (Player) e.getDamager();
+        if (isCritical(damager)) {
+            final var damage = e.getDamage();
+            final var backToBaseDamage = damage / 1.5;
+            final var damageDifferential = damage - backToBaseDamage;
+            if (damageDifferential > 2)
+                e.setDamage(backToBaseDamage + 3);
+
+        }
+    }
+
+    @SuppressWarnings("all")
+    private boolean isCritical(Player player) {
+        return player.getFallDistance() > 0.0F && !player.isOnGround() && !player.isInsideVehicle()
+                && !player.hasPotionEffect(PotionEffectType.BLINDNESS)
+                && player.getLocation().getBlock().getType() != Material.LADDER
+                && player.getLocation().getBlock().getType() != Material.VINE;
+    }
+    
 
 }
