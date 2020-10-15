@@ -136,6 +136,10 @@ public class GlobalListeners implements Listener {
         } else if (e.getMaterial() == Material.NETHERITE_SWORD) {
             e.getPlayer().performCommand("arena");
         }
+
+        if (e.getAction() == Action.RIGHT_CLICK_BLOCK && isAxe(e.getItem())) {
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
