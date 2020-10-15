@@ -3,3 +3,6 @@ version: ${version}
 main: us.jcedeno.hangar.paper.Hangar
 api-version: 1.16
 api: ["1.16"]
+softdepends:
+    - "Vault"
+    - "LuckPerms"

@@ -3,7 +3,9 @@ package us.jcedeno.hangar.paper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,15 +35,21 @@ import org.bukkit.potion.PotionEffectType;
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
+import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 
 public class GlobalListeners implements Listener {
     private Hangar instance;
+    private ScoreboardManager scoreboardManager;
     private static @Getter String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
     private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena FFA";
-    private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0, 2.0, 0);
+    private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0,
+            2.0, 0);
 
     public GlobalListeners(Hangar instance) {
         this.instance = instance;
+        this.scoreboardManager = instance.getScoreboardManager();
+        Bukkit.getPluginManager().registerEvents(this, this.instance);
     }
 
     @EventHandler
@@ -53,14 +61,68 @@ public class GlobalListeners implements Listener {
                 + "noobsters.buycraft.net\n";
 
         player.setPlayerListHeaderFooter(header, footer);
-        player.teleportAsync(spawnLoc).thenAccept(a->{
+        player.teleportAsync(spawnLoc).thenAccept(a -> {
             player.sendMessage(ChatColor.BLUE + "Discord! discord.noobsters.net\n" + ChatColor.AQUA
-            + "Twitter! twitter.com/NoobstersMC\n" + ChatColor.GOLD + "Donations! noobsters.buycraft.net");
+                    + "Twitter! twitter.com/NoobstersMC\n" + ChatColor.GOLD + "Donations! noobsters.buycraft.net");
         });
         player.setFoodLevel(20);
         player.setSaturation(20F);
         e.setJoinMessage("");
         giveTransciever(player);
+        // Send the player a scoreboard
+        scoreboardManager.sendInitialBoard(player);
+    }
+
+    @EventHandler
+    public void onPlayersChange(ProxyChangeInPlayersEvent e) {
+        instance.getScoreboardManager().getBoards().values().parallelStream().forEach(boards -> {
+            boards.updateLine(7, " " + e.getPlayers());
+        });
+    }
+
+    @EventHandler
+    public void onShieldBreak(EntityDamageByEntityEvent e) {
+        if (e.getDamager() instanceof Player && e.getEntity() instanceof Player) {
+            var victim = (Player) e.getEntity();
+            var player = (Player) e.getDamager();
+            if (victim.isBlocking() && isAxe(player.getInventory().getItemInMainHand())) {
+                player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BREAK, 1.0f, 1.0f);
+            }
+
+        }
+    }
+
+    private boolean isAxe(ItemStack e) {
+        return e != null && e.getType().toString().contains("_AXE");
+    }
+
+    @EventHandler
+    public void onShoot(EntityDamageByEntityEvent e) {
+        if (e.getFinalDamage() <= 0.0)
+            return;
+        if (e.getDamager() instanceof Arrow) {
+            if (((Arrow) e.getDamager()).getShooter() instanceof Player) {
+                var shooter = (Player) ((Arrow) e.getDamager()).getShooter();
+                var victim = (Player) e.getEntity();
+                var health = (int) (victim.getHealth() + victim.getAbsorptionAmount() - e.getFinalDamage());
+                var hearts = health / 2.0D;
+
+                if (hearts <= 0.0) {
+                    shooter.sendMessage(ChatColor.GOLD + "🏹 " + victim.getDisplayName() + ChatColor.GRAY + " has been "
+                            + ChatColor.WHITE + "eliminated" + ChatColor.DARK_RED + "❤");
+                    return;
+                }
+                shooter.sendMessage(ChatColor.GOLD + "🏹 " + victim.getDisplayName() + ChatColor.GRAY + " is at "
+                        + ChatColor.WHITE + hearts + ChatColor.DARK_RED + "❤");
+            }
+        }
+    }
+
+    @EventHandler
+    public void cleanScoreboard(PlayerQuitEvent e) {
+        // Remove old scoreboard if present.
+        scoreboardManager.getBoards().remove(e.getPlayer().getUniqueId());
+
     }
 
     /*
@@ -70,8 +132,8 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onTransceiverOpen(PlayerInteractEvent e) {
         if (e.getAction() != Action.PHYSICAL && e.getMaterial() == Material.NETHER_STAR) {
-            instance.getServerGui().open(e.getPlayer());
-        }else if(e.getMaterial() == Material.NETHERITE_SWORD){
+            instance.getCommunicatorManager().getServerGui().open(e.getPlayer());
+        } else if (e.getMaterial() == Material.NETHERITE_SWORD) {
             e.getPlayer().performCommand("arena");
         }
     }
@@ -145,7 +207,7 @@ public class GlobalListeners implements Listener {
                     "&fServer is full! \n &aGet your rank at noobstersuhc.buycraft.net"));
 
     }
-    
+
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
         if (!e.getPlayer().hasPermission("lobby.edit")) {
@@ -242,6 +304,5 @@ public class GlobalListeners implements Listener {
                 && player.getLocation().getBlock().getType() != Material.LADDER
                 && player.getLocation().getBlock().getType() != Material.VINE;
     }
-    
 
 }

@@ -38,13 +38,20 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
     //ACF
     compile 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
-    //Scoreboard, maybe use helper by lucko?
+    //Scoreboard and GUI by Micky, maybe use helper by lucko?
     compile 'fr.mrmicky:FastInv:3.0.2'
+    compile 'fr.mrmicky:FastBoard:1.1.0'
+    
     //okhttp
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
     implementation 'com.google.code.gson:gson:2.8.6'
     //Caffeine
     compile 'com.github.ben-manes.caffeine:caffeine:2.8.6'
+    //Vault
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+    //Luckperms
+    compileOnly 'net.luckperms:api:5.1'
+
 }
 
 processResources {
@@ -63,6 +70,7 @@ shadowJar {
     relocate 'co.aikar.commands', 'shadded.acf'
     relocate 'co.aikar.locales', 'shadded.acf.locales'
     relocate 'fr.mrmicky', 'shadded.gui'
+    relocate 'fr.mrmicky.fastboard', 'us.jcedeno.hangar.paper.scoreboard'
     relocate 'okhttp3', 'shadded.okhttp3'
     relocate 'okio', 'shadded.okio'
     relocate 'kotlin', 'shadded.kotlin'

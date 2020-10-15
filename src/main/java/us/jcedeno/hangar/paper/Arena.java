@@ -1,11 +1,14 @@
 package us.jcedeno.hangar.paper;
 
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.destroystokyo.paper.event.block.AnvilDamagedEvent;
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.Scheduler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -57,26 +60,44 @@ import us.jcedeno.hangar.paper.objects.CoordinatePair;
  */
 @CommandAlias("arena|practice|a|p|ffa")
 public class Arena extends BaseCommand implements Listener {
-    // Long is the most significant bits of player's UUID. Integer is the player's
-    private @Getter Cache<Long, Integer> cache = Caffeine.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).build();
     // Objects to control the data for random teleport
     private @Getter @Setter CoordinatePair centerCoordinate = CoordinatePair.of(-160, 0, -300);
     private @Getter @Setter int radius = 100;
     // An instance of the plugin
     private @Getter int arenaLimits = 30;
     private Hangar instance;
+    // Loading cacche to self expire players
+    private @Getter LoadingCache<UUID, Integer> cache = Caffeine.newBuilder().scheduler(Scheduler.systemScheduler())
+            .removalListener((UUID key, Integer value, RemovalCause cause) -> {
+                if (cause == RemovalCause.EXPIRED) {
+                    var optionalPlayer = Bukkit.getOnlinePlayers().stream()
+                            .filter(a -> a.getUniqueId().getMostSignificantBits() == key.getMostSignificantBits())
+                            .findFirst();
+                    if (optionalPlayer.isPresent()) {
+                        var player = optionalPlayer.get();
+                        player.sendMessage(
+                                ChatColor.RED + "You have been kicked out of the arena for being idle for too long.");
+                        System.out.println(cause);
+                        Bukkit.getScheduler().runTask(instance, () -> leaveArena(player));
+                    }
+                }
+            }).expireAfterWrite(5, TimeUnit.MINUTES).build(entry -> null);
     // Auto Lapiz
     private final ItemStack lapis = new ItemBuilder(Material.LAPIS_LAZULI).amount(64).build();
     private final Random random = new Random();
-
+    // Local Scoreboard for hearts
     private Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 
     public Arena(Hangar instance) {
         this.instance = instance;
-        var obj = scoreboard.registerNewObjective("health", Criterias.HEALTH, ChatColor.DARK_RED + "❤",
-                RenderType.HEARTS);
-        obj.setDisplaySlot(DisplaySlot.BELOW_NAME);
-
+        //Register listener and command.
+        this.instance.getCommandManager().registerCommand(this);
+        Bukkit.getPluginManager().registerEvents(this, instance);
+        //Register health objectives for arena.
+        scoreboard.registerNewObjective("health2", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.INTEGER)
+                .setDisplaySlot(DisplaySlot.PLAYER_LIST);
+        scoreboard.registerNewObjective("health", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.HEARTS)
+                .setDisplaySlot(DisplaySlot.BELOW_NAME);
     }
 
     // Commands
@@ -88,20 +109,25 @@ public class Arena extends BaseCommand implements Listener {
             return;
         }
         if (isInArena(player)) {
-            cache.invalidate(player.getUniqueId().getMostSignificantBits());
-            player.sendActionBar("Leaving the arena...");
-            showEveryone(player);
-            GlobalListeners.giveTransciever(player);
-            player.teleport(GlobalListeners.getSpawnLoc());
-            player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            leaveArena(player);
         } else {
             player.sendActionBar("Joining the arena...");
             player.setScoreboard(scoreboard);
             hideOthers(player);
             giveKit(player);
             teleportPlayer(player);
-            cache.put(player.getUniqueId().getMostSignificantBits(), 0);
+            cache.put(player.getUniqueId(), 0);
         }
+
+    }
+
+    private void leaveArena(final Player player) {
+        cache.invalidate(player.getUniqueId());
+        player.sendActionBar("Leaving the arena...");
+        GlobalListeners.giveTransciever(player);
+        player.teleport(GlobalListeners.getSpawnLoc());
+        player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        showEveryone(player);
 
     }
 
@@ -113,7 +139,7 @@ public class Arena extends BaseCommand implements Listener {
     }
 
     private boolean isInArena(Player player) {
-        return cache.getIfPresent(player.getUniqueId().getMostSignificantBits()) != null;
+        return cache.getIfPresent(player.getUniqueId()) != null;
     }
 
     @SuppressWarnings("all")
@@ -139,9 +165,9 @@ public class Arena extends BaseCommand implements Listener {
 
     private void showEveryone(Player player) {
         Bukkit.getOnlinePlayers().forEach(all -> {
-            if(isInArena(all)){
+            if (isInArena(all)) {
                 all.hidePlayer(instance, player);
-            }else{
+            } else {
                 player.showPlayer(instance, all);
             }
         });
@@ -190,7 +216,7 @@ public class Arena extends BaseCommand implements Listener {
         if (isInArena(e.getPlayer())) {
             giveKit(e.getPlayer());
             e.setRespawnLocation(getRandomLocation(e.getPlayer().getWorld()));
-        } else{
+        } else {
             GlobalListeners.giveTransciever(e.getPlayer());
         }
 
@@ -205,8 +231,8 @@ public class Arena extends BaseCommand implements Listener {
         // Check if there is a killer
         if (killer != null && killer != e.getEntity()) {
             // Update the kill count of the killer
-            var bits = killer.getUniqueId().getMostSignificantBits();
-            var currentKills = cache.getIfPresent(killer.getUniqueId().getMostSignificantBits());
+            var bits = killer.getUniqueId();
+            var currentKills = cache.getIfPresent(bits);
             var newKills = (currentKills != null) ? currentKills.intValue() + 1 : 1;
 
             cache.put(bits, newKills);
@@ -247,10 +273,10 @@ public class Arena extends BaseCommand implements Listener {
         // Obtain player's inventory
         final var inv = player.getInventory();
         // Set Armour
-        inv.setHelmet(new ItemBuilder(Material.IRON_HELMET).enchant(Enchantment.PROTECTION_ENVIRONMENTAL).build());
-        inv.setChestplate(new ItemBuilder(Material.IRON_CHESTPLATE).enchant(Enchantment.PROTECTION_PROJECTILE).build());
-        inv.setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).enchant(Enchantment.PROTECTION_ENVIRONMENTAL).build());
-        inv.setBoots(new ItemBuilder(Material.IRON_BOOTS).enchant(Enchantment.PROTECTION_PROJECTILE).build());
+        inv.setHelmet(new ItemBuilder(Material.IRON_HELMET).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 2).build());
+        inv.setChestplate(new ItemBuilder(Material.IRON_CHESTPLATE).enchant(Enchantment.PROTECTION_PROJECTILE, 2).build());
+        inv.setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 2).build());
+        inv.setBoots(new ItemBuilder(Material.IRON_BOOTS).enchant(Enchantment.PROTECTION_PROJECTILE, 2).build());
 
         inv.setItem(0, new ItemBuilder(Material.IRON_SWORD).enchant(Enchantment.DAMAGE_ALL).build());
         inv.setItem(1, new ItemBuilder(Material.BOW).enchant(Enchantment.ARROW_DAMAGE).build());
@@ -315,6 +341,7 @@ public class Arena extends BaseCommand implements Listener {
         var player = (Player) e.getView().getPlayer();
         var isIn = isInArena(player);
         if (isIn) {
+            if(e.getRecipe() == null) return;
             var result = e.getRecipe().getResult();
             if (result != null) {
                 switch (result.getType()) {
@@ -348,7 +375,7 @@ public class Arena extends BaseCommand implements Listener {
             } else {
                 player.damage(1000);
             }
-            cache.invalidate(player.getUniqueId().getMostSignificantBits());
+            cache.invalidate(player.getUniqueId());
 
         }
     }
