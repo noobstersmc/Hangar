@@ -16,9 +16,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
-import fr.mrmicky.fastinv.FastInv;
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -29,7 +29,7 @@ import us.jcedeno.hangar.paper.vultr.VultrAPI;
 
 public class CommunicatorManager implements PluginMessageListener {
     private Hangar instance;
-    private @Getter FastInv serverGui = new FastInv(InventoryType.HOPPER, "UHC Servers");
+    private @Getter SelectorInventory serverGui = new SelectorInventory(InventoryType.HOPPER, "UHC Servers");
     private @Getter Cache<String, GameData> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).build();
     private @Getter Integer proxyPlayers = 0;
 
@@ -38,6 +38,64 @@ public class CommunicatorManager implements PluginMessageListener {
         // Register communication channel to proxy
         Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(instance, "BungeeCord");
         Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "BungeeCord", this);
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
+            // Refresh the proxyPlayers variable.
+            getCount();
+            // Clean up the cache
+            cache.cleanUp();
+
+            var entries = cache.asMap().entrySet();
+            // Add default item if no data online
+            if (entries.size() <= 0) {
+                serverGui.setItem(0, new ItemBuilder(Material.APPLE)
+                        .name(ChatColor.of("#c73838") + "" + ChatColor.BOLD + "No UHCs Running")
+                        .enchant(Enchantment.DURABILITY).flags(ItemFlag.HIDE_ENCHANTS)
+                        .addLore(
+                                ChatColor.WHITE + "Check " + ChatColor.BLUE + "discord.noobsters.net " + ChatColor.WHITE
+                                        + "or",
+                                ChatColor.AQUA + "@NoobstersUHC " + ChatColor.WHITE + "for upcoming games.")
+                        .build());
+                serverGui.setItems(1, 4, null);
+                return;
+            }
+            // Keep going and update based on entries
+            var entryIter = entries.iterator();
+            // Get all items to upate if there already is one in place.
+            var currentItems = serverGui.getInventory().getContents();
+            // Lopp through the items in the inventory.
+            for (int i = 0; i < currentItems.length; i++) {
+                var item = currentItems[i];
+                var hasNext = entryIter.hasNext();
+                // Check if item is air and add or update.
+                if (item != null && item.getType() != Material.AIR) {
+                    // Is there are no more entries remove the item
+                    if (!hasNext) {
+                        serverGui.setItem(i, null);
+                        continue;
+                    }
+                    // Get the following entry
+                    var next = entryIter.next();
+                    // Get meta info
+                    var meta = getItemFromEntry(next);
+                    item.setItemMeta(meta);
+                    //TODO: A switch statmement to represent the server status with the material
+                    item.setType(Material.ENCHANTED_GOLDEN_APPLE);
+                    // Update server it connects to.
+                    serverGui.setItem(i, item, e -> {
+                        sendToProxy((Player) e.getWhoClicked(), next.getKey());
+                    });
+                } else {
+                    if (!hasNext) {
+                        continue;
+                    }
+                    // Add a new item
+                    var next = entryIter.next();
+                    serverGui.addItem(new ItemBuilder(Material.DIAMOND_SWORD).name(next.getKey()).build());
+                }
+            }
+
+        }, 25L, 5L);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
             VultrAPI.getInstances().thenAccept(result -> {
@@ -51,63 +109,40 @@ public class CommunicatorManager implements PluginMessageListener {
                 }
             });
 
-        }, 0L, 10L);
-        Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
-            // Refresh the proxyPlayers variable.
-            getCount();
-            // Clean up from before
-            serverGui.removeItems(0, 1, 2, 3, 4);
-            int i = 0;
-            for (var entry : cache.asMap().entrySet()) {
-                var item = getItemFromEntry(entry, Material.ENCHANTED_GOLDEN_APPLE);
-                serverGui.setItem(i++, item, (e) -> {
-                    e.getWhoClicked().sendMessage("Sending you to " + entry.getKey());
-                    sendToProxy((Player) e.getWhoClicked(), entry.getKey());
-                    e.setCancelled(true);
-                });
-            }
-            // Add a default item if so
-            if (cache.asMap().isEmpty()) {
-                serverGui.addItem(new ItemBuilder(Material.APPLE)
-                        .name(ChatColor.of("#c73838") + "" + ChatColor.BOLD + "No UHCs Running")
-                        .enchant(Enchantment.DURABILITY).flags(ItemFlag.HIDE_ENCHANTS)
-                        .addLore(
-                                ChatColor.WHITE + "Check " + ChatColor.BLUE + "discord.noobsters.net " + ChatColor.WHITE
-                                        + "or",
-                                ChatColor.AQUA + "@NoobstersUHC " + ChatColor.WHITE + "for upcoming games.")
-                        .build());
-            }
-        }, 0L, 2L);
+        }, 0L, 5L);
     }
 
-    public ItemStack getItemFromEntry(Entry<String, GameData> entry, Material material) {
+    public ItemMeta getItemFromEntry(Entry<String, GameData> entry) {
         final var data = entry.getValue();
         final var stage = data.getGameStage();
         final var titleColor = ChatColor.of("#8c7373");
-        var itemBuilder = new ItemBuilder(material).name(ChatColor.of("#c73838") + "" + ChatColor.BOLD
-                + (data.getHostname() != null ? data.getHostname() + "'s " : "") + "UHC");
+
+        final var meta = new ItemStack(Material.STONE).getItemMeta();
+        var name = (data.getHostname() != null ? data.getHostname() + "'s " : "") + "UHC";
+        meta.setDisplayName(ChatColor.of("#c73838") + "" + ChatColor.BOLD + name);
+
         switch (stage.toLowerCase()) {
             case "lobby":
             case "scatter": {
-                itemBuilder = itemBuilder.addLore(
+                meta.setLore(LoreBuilder.of(
                         titleColor + "Config: " + ChatColor.WHITE + data.getGameType() + " " + data.getScenarios(), "",
                         titleColor + "Players: " + ChatColor.WHITE + data.getPlayersOnline() + "/"
-                                + data.getUhcslots());
+                                + data.getUhcslots()));
 
                 break;
             }
             case "ingame": {
-                itemBuilder = itemBuilder.addLore(
+                meta.setLore(LoreBuilder.of(
                         titleColor + "Config: " + ChatColor.WHITE + data.getGameType() + " " + data.getScenarios(), "",
                         titleColor + "Game Time: " + ChatColor.WHITE + timeConvert(data.getGameTime()),
                         titleColor + "Players Alive: " + ChatColor.WHITE + data.getPlayersAlive(),
-                        titleColor + "Spectators: " + ChatColor.WHITE + data.getSpectators());
+                        titleColor + "Spectators: " + ChatColor.WHITE + data.getSpectators()));
 
                 break;
             }
         }
 
-        return itemBuilder.build();
+        return meta;
     }
 
     private String timeConvert(int t) {

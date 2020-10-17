@@ -324,6 +324,8 @@ public class Arena extends BaseCommand implements Listener {
                 case STICK:
                 case OAK_PLANKS:
                 case BOOK:
+                case COOKIE:
+                case POTION:
                     e.setCancelled(false);
                     break;
 

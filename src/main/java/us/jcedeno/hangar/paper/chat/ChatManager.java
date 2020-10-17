@@ -21,12 +21,10 @@ public class ChatManager implements Listener {
     private Hangar instance;
     private @Getter Permission perms;
     private @Getter Chat chat;
-    private @Getter LPManager lp;
     private final String format = "&7{prefix}%1$s{suffix}:&f %2$s";
 
     public ChatManager(Hangar instance) {
         this.instance = instance;
-        this.lp = new LPManager(instance);
         setupChat();
         setupPermissions();
         Bukkit.getPluginManager().registerEvents(this, this.instance);
