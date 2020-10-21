@@ -13,6 +13,7 @@ import com.github.benmanes.caffeine.cache.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -24,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -138,9 +140,11 @@ public class Arena extends BaseCommand implements Listener {
         sender.sendMessage("Arena slots set to " + this.arenaLimits);
     }
 
-    private boolean isInArena(Player player) {
+    public boolean isInArena(Player player) {
         return cache.getIfPresent(player.getUniqueId()) != null;
     }
+
+        
 
     @SuppressWarnings("all")
     @EventHandler
@@ -326,6 +330,8 @@ public class Arena extends BaseCommand implements Listener {
                 case BOOK:
                 case COOKIE:
                 case POTION:
+                case APPLE:
+                case NETHERITE_SCRAP:
                     e.setCancelled(false);
                     break;
 
@@ -347,6 +353,10 @@ public class Arena extends BaseCommand implements Listener {
             var result = e.getRecipe().getResult();
             if (result != null) {
                 switch (result.getType()) {
+                    case DIAMOND_PICKAXE:
+                        var i = new ItemStack(Material.DIAMOND_PICKAXE);
+                        //NamespacedKey item = new NamespacedKey(namespace, key)
+                        //meta.setDestroyableKeys(Material.END_STONE);
                     case STICK:
                     case DIAMOND_CHESTPLATE:
                     case DIAMOND_LEGGINGS:
@@ -363,6 +373,13 @@ public class Arena extends BaseCommand implements Listener {
 
         }
 
+    }
+
+    @EventHandler
+    public void onItemSpawn(ItemSpawnEvent e){
+        if(e.getEntity().getItemStack().getType().equals(Material.ANCIENT_DEBRIS)){
+            e.getEntity().getItemStack().setType(Material.NETHERITE_SCRAP);
+        }
     }
 
     @EventHandler

@@ -42,7 +42,7 @@ public class GlobalListeners implements Listener {
     private Hangar instance;
     private ScoreboardManager scoreboardManager;
     private static @Getter String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
-    private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena FFA";
+    private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena";
     private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0,
             2.0, 0);
 
@@ -96,32 +96,36 @@ public class GlobalListeners implements Listener {
         return e != null && e.getType().toString().contains("_AXE");
     }
 
-    @EventHandler
-    public void onShoot(EntityDamageByEntityEvent e) {
-        if (e.getFinalDamage() <= 0.0)
-            return;
-        if (e.getDamager() instanceof Arrow) {
-            if (((Arrow) e.getDamager()).getShooter() instanceof Player) {
-                var shooter = (Player) ((Arrow) e.getDamager()).getShooter();
-                var victim = (Player) e.getEntity();
-                var health = (int) (victim.getHealth() + victim.getAbsorptionAmount() - e.getFinalDamage());
-                var hearts = health / 2.0D;
-
-                if (hearts <= 0.0) {
-                    shooter.sendMessage(ChatColor.GOLD + "🏹 " + victim.getDisplayName() + ChatColor.GRAY + " has been "
-                            + ChatColor.WHITE + "eliminated" + ChatColor.DARK_RED + "❤");
-                    return;
-                }
-                shooter.sendMessage(ChatColor.GOLD + "🏹 " + victim.getDisplayName() + ChatColor.GRAY + " is at "
-                        + ChatColor.WHITE + hearts + ChatColor.DARK_RED + "❤");
-            }
-        }
-    }
+    
 
     @EventHandler
     public void cleanScoreboard(PlayerQuitEvent e) {
         // Remove old scoreboard if present.
         scoreboardManager.getBoards().remove(e.getPlayer().getUniqueId());
+
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void onArrow(EntityDamageByEntityEvent e) {
+        if (!(e.getDamager() instanceof Arrow))
+            return;
+        if (!(((Arrow) e.getDamager()).getShooter() instanceof Player))
+            return;
+        if (!(e.getEntity() instanceof Player))
+            return;
+
+        Player p = (Player) e.getEntity();
+
+        if (p.getHealth() - e.getFinalDamage() <= 0.0D || p.isBlocking())
+            return;
+
+        Player shooter = ((Player) ((Arrow) e.getDamager()).getShooter());
+
+        if (shooter == p)
+            return;
+
+        shooter.sendMessage(ChatColor.GOLD + "🏹 " + p.getDisplayName() + ChatColor.GRAY + " is at " + ChatColor.WHITE
+                + (((int) (p.getHealth() - e.getFinalDamage())) / 2.0D) + ChatColor.DARK_RED + "❤");
 
     }
 
@@ -136,10 +140,6 @@ public class GlobalListeners implements Listener {
         } else if (e.getMaterial() == Material.NETHERITE_SWORD) {
             e.getPlayer().performCommand("arena");
         }
-
-        if (e.getAction() == Action.RIGHT_CLICK_BLOCK && isAxe(e.getItem())) {
-            e.setCancelled(true);
-        }
     }
 
     @EventHandler
@@ -153,20 +153,21 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onTranscieverMove(InventoryClickEvent e) {
-        if ((e.getCursor() != null && isTransceiver(e.getCursor()))
-                || (e.getCurrentItem() != null && isTransceiver(e.getCurrentItem()))) {
-            e.setCancelled(true);
-            return;
-        }
 
-        if (e.getClick() == ClickType.NUMBER_KEY) {
-            var button = e.getHotbarButton();
-            var hotbarItem = e.getClickedInventory().getItem(button);
-            if (hotbarItem != null && isTransceiver(hotbarItem)) {
+            if ((e.getCursor() != null && isTransceiver(e.getCursor()))
+                    || (e.getCurrentItem() != null && isTransceiver(e.getCurrentItem()))) {
                 e.setCancelled(true);
                 return;
             }
-        }
+
+            if (e.getClick() == ClickType.NUMBER_KEY) {
+                var button = e.getHotbarButton();
+                var hotbarItem = e.getClickedInventory().getItem(button);
+                if (hotbarItem != null && isTransceiver(hotbarItem)) {
+                    e.setCancelled(true);
+                    return;
+                }
+            }
 
     }
 
