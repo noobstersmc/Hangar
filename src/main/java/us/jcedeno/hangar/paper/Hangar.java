@@ -40,6 +40,9 @@ public class Hangar extends JavaPlugin {
         this.lpManager = new LPManager(this);
         this.arena = new Arena(this);
         this.globalListeners = new GlobalListeners(this);
+        Bukkit.getOnlinePlayers().forEach(all->{
+            scoreboardManager.sendInitialBoard(all);
+        });
 
     }
 

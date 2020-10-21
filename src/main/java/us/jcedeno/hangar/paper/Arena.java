@@ -1,16 +1,23 @@
 package us.jcedeno.hangar.paper;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import com.destroystokyo.paper.Namespaced;
 import com.destroystokyo.paper.event.block.AnvilDamagedEvent;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.github.benmanes.caffeine.cache.RemovalCause;
-import com.github.benmanes.caffeine.cache.Scheduler;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -55,7 +62,9 @@ import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.objects.ArenaPlayerData;
 import us.jcedeno.hangar.paper.objects.CoordinatePair;
+import us.jcedeno.hangar.paper.objects.InventorySerializer;
 
 /**
  * InnerArena
@@ -65,37 +74,28 @@ public class Arena extends BaseCommand implements Listener {
     // Objects to control the data for random teleport
     private @Getter @Setter CoordinatePair centerCoordinate = CoordinatePair.of(-160, 0, -300);
     private @Getter @Setter int radius = 100;
+    private final List<Namespaced> destroyableKeys = Arrays.asList(NamespacedKey.minecraft("end_stone"),
+            NamespacedKey.minecraft("ancient_debris"), NamespacedKey.minecraft("gold_block"));
     // An instance of the plugin
     private @Getter int arenaLimits = 30;
     private Hangar instance;
     // Loading cacche to self expire players
-    private @Getter LoadingCache<UUID, Integer> cache = Caffeine.newBuilder().scheduler(Scheduler.systemScheduler())
-            .removalListener((UUID key, Integer value, RemovalCause cause) -> {
-                if (cause == RemovalCause.EXPIRED) {
-                    var optionalPlayer = Bukkit.getOnlinePlayers().stream()
-                            .filter(a -> a.getUniqueId().getMostSignificantBits() == key.getMostSignificantBits())
-                            .findFirst();
-                    if (optionalPlayer.isPresent()) {
-                        var player = optionalPlayer.get();
-                        player.sendMessage(
-                                ChatColor.RED + "You have been kicked out of the arena for being idle for too long.");
-                        System.out.println(cause);
-                        Bukkit.getScheduler().runTask(instance, () -> leaveArena(player));
-                    }
-                }
-            }).expireAfterWrite(5, TimeUnit.MINUTES).build(entry -> null);
+    private @Getter HashMap<UUID, ArenaPlayerData> arenaUsers = new HashMap<>();
+    private @Getter HashMap<UUID, ArenaPlayerData> dataToRestore = new HashMap<>();
     // Auto Lapiz
     private final ItemStack lapis = new ItemBuilder(Material.LAPIS_LAZULI).amount(64).build();
     private final Random random = new Random();
     // Local Scoreboard for hearts
     private Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+    // File name for arena-data
+    private static String ARENA_JSON = Bukkit.getWorldContainer().getPath() + File.separatorChar + "arena-data.json";
 
     public Arena(Hangar instance) {
         this.instance = instance;
-        //Register listener and command.
+        // Register listener and command.
         this.instance.getCommandManager().registerCommand(this);
         Bukkit.getPluginManager().registerEvents(this, instance);
-        //Register health objectives for arena.
+        // Register health objectives for arena.
         scoreboard.registerNewObjective("health2", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.INTEGER)
                 .setDisplaySlot(DisplaySlot.PLAYER_LIST);
         scoreboard.registerNewObjective("health", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.HEARTS)
@@ -105,9 +105,9 @@ public class Arena extends BaseCommand implements Listener {
     // Commands
     @Default
     public void onPratice(Player player) {
-        if (cache.asMap().size() >= this.arenaLimits && !player.hasPermission("reserved.slot")) {
+        if (arenaUsers.size() >= this.arenaLimits && !player.hasPermission("reserved.slot")) {
             player.sendMessage(
-                    "Arena FFA is full! \n Get your rank at " + ChatColor.GREEN + "noobstersuhc.buycraft.net");
+                    ChatColor.GREEN + "Arena is full! \n Get your rank at " + ChatColor.GOLD + "noobstersuhc.buycraft.net");
             return;
         }
         if (isInArena(player)) {
@@ -118,13 +118,92 @@ public class Arena extends BaseCommand implements Listener {
             hideOthers(player);
             giveKit(player);
             teleportPlayer(player);
-            cache.put(player.getUniqueId(), 0);
+            var arenaPlayerData = new ArenaPlayerData(player.getUniqueId());
+            arenaPlayerData.setLastDamageTime(System.currentTimeMillis());
+            arenaPlayerData.setCurrentKills(0);
+            arenaUsers.put(player.getUniqueId(), arenaPlayerData);
+        }
+
+    }
+
+    @Subcommand("save")
+    public void saveCurrentData(CommandSender sender) {
+        arenaUsers.entrySet().forEach(entry -> {
+            var player = Bukkit.getPlayer(entry.getKey());
+            var data = entry.getValue();
+
+            if (player != null && player.isOnline()) {
+                data.serializeInventory(player.getInventory());
+                data.setSerializedLocation(player.getLocation());
+            }
+        });
+        var gson = new GsonBuilder().setPrettyPrinting().create();
+        try {
+            var writer = new FileWriter(ARENA_JSON);
+            gson.toJson(arenaUsers.values(), writer);
+            writer.flush();
+            writer.close();
+            sender.sendMessage("Succesfully backed up arena-data!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Subcommand("load")
+    public void loadArenaData(CommandSender sender) {
+        var gson = new GsonBuilder().setPrettyPrinting().create();
+        try {
+            Reader reader = Files.newBufferedReader(Paths.get(ARENA_JSON));
+            var jsonArray = gson.fromJson(reader, JsonArray.class);
+
+            jsonArray.forEach(elements -> {
+                var data = gson.fromJson(elements, ArenaPlayerData.class);
+                var player = Bukkit.getPlayer(data.getUuid());
+                if (player != null && player.isOnline()) {
+                    restoreArenaPlayer(player, data);
+                } else {
+                    dataToRestore.put(data.getUuid(), data);
+                }
+            });
+            sender.sendMessage("Succesfully loaded up arena-data!");
+            reader.close();
+            new File(ARENA_JSON).delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void restoreArenaPlayer(final Player player, final ArenaPlayerData data) {
+        if (player != null && player.isOnline()) {
+            data.setLastDamageTime(System.currentTimeMillis());
+            if (data.getPosition() != null) {
+                player.teleport(data.getPosition());
+            }
+            var invContent = data.getPlayerInventory()[1];
+            var armorContent = data.getPlayerInventory()[0];
+            try {
+                player.getInventory().setContents(InventorySerializer.itemStackArrayFromBase64(invContent));
+                player.getInventory().setContents(InventorySerializer.itemStackArrayFromBase64(armorContent));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            player.sendActionBar("Joining the arena...");
+            player.setScoreboard(scoreboard);
+            player.setGameMode(GameMode.ADVENTURE);
+            hideOthers(player);
+
+            arenaUsers.put(player.getUniqueId(), data);
+            player.sendMessage("Welcome back to the arena!");
         }
 
     }
 
     private void leaveArena(final Player player) {
-        cache.invalidate(player.getUniqueId());
+        arenaUsers.remove(player.getUniqueId());
         player.sendActionBar("Leaving the arena...");
         GlobalListeners.giveTransciever(player);
         player.teleport(GlobalListeners.getSpawnLoc());
@@ -141,10 +220,8 @@ public class Arena extends BaseCommand implements Listener {
     }
 
     public boolean isInArena(Player player) {
-        return cache.getIfPresent(player.getUniqueId()) != null;
+        return arenaUsers.get(player.getUniqueId()) != null;
     }
-
-        
 
     @SuppressWarnings("all")
     @EventHandler
@@ -181,6 +258,14 @@ public class Arena extends BaseCommand implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         Bukkit.getOnlinePlayers().stream().filter(all -> isInArena(all))
                 .forEach(toHideFrom -> toHideFrom.hidePlayer(instance, e.getPlayer()));
+        // Resotore arena data if there is any
+        Bukkit.getScheduler().runTaskLater(instance, ()->{
+            if (dataToRestore.containsKey(e.getPlayer().getUniqueId()) && !isInArena(e.getPlayer())) {
+                var data = dataToRestore.get(e.getPlayer().getUniqueId());
+                dataToRestore.remove(e.getPlayer().getUniqueId());
+                restoreArenaPlayer(e.getPlayer(), data);
+            }            
+        }, 5L);
     }
 
     /*
@@ -202,7 +287,7 @@ public class Arena extends BaseCommand implements Listener {
 
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerDamageEvent(EntityDamageByEntityEvent e) {
         var damage = e.getDamager();
 
@@ -210,6 +295,9 @@ public class Arena extends BaseCommand implements Listener {
             var player = (Player) damage;
             if (!isInArena(player)) {
                 e.setCancelled(true);
+            } else {
+                // Anti-AFK
+                arenaUsers.get(e.getEntity().getUniqueId()).setLastDamageTime(System.currentTimeMillis());
             }
         }
 
@@ -230,18 +318,25 @@ public class Arena extends BaseCommand implements Listener {
     public void handleArenaDeath(PlayerDeathEvent e) {
         // Don't broadcast the death message to everyone
         e.setDeathMessage("");
+        var player = e.getEntity();
+        var arenaData = arenaUsers.get(player.getUniqueId());
+        if (arenaData != null) {
+            if ((System.currentTimeMillis() - arenaData.getLastDamageTime()) >= 60_000) {
+                player.sendMessage(
+                        ChatColor.RED + "You have been kicked out of the arena for being idle for too long.");
+                Bukkit.getScheduler().runTask(instance, () -> leaveArena(player));
+            }
+        }
         // Send to players in arena
         var killer = e.getEntity().getKiller();
         // Check if there is a killer
         if (killer != null && killer != e.getEntity()) {
             // Update the kill count of the killer
             var bits = killer.getUniqueId();
-            var currentKills = cache.getIfPresent(bits);
-            var newKills = (currentKills != null) ? currentKills.intValue() + 1 : 1;
-
-            cache.put(bits, newKills);
+            var killerData = arenaUsers.get(bits);
+            killerData.setCurrentKills(killerData.getCurrentKills() + 1);
             // random drops
-            if (newKills >= 2) {
+            if (killerData.getCurrentKills() >= 2) {
                 e.getDrops().add(new ItemBuilder(random.nextBoolean() ? Material.OAK_PLANKS : Material.BOOK).build());
             }
         }
@@ -278,8 +373,10 @@ public class Arena extends BaseCommand implements Listener {
         final var inv = player.getInventory();
         // Set Armour
         inv.setHelmet(new ItemBuilder(Material.IRON_HELMET).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 2).build());
-        inv.setChestplate(new ItemBuilder(Material.IRON_CHESTPLATE).enchant(Enchantment.PROTECTION_PROJECTILE, 2).build());
-        inv.setLeggings(new ItemBuilder(Material.IRON_LEGGINGS).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 2).build());
+        inv.setChestplate(
+                new ItemBuilder(Material.IRON_CHESTPLATE).enchant(Enchantment.PROTECTION_PROJECTILE, 2).build());
+        inv.setLeggings(
+                new ItemBuilder(Material.IRON_LEGGINGS).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 2).build());
         inv.setBoots(new ItemBuilder(Material.IRON_BOOTS).enchant(Enchantment.PROTECTION_PROJECTILE, 2).build());
 
         inv.setItem(0, new ItemBuilder(Material.IRON_SWORD).enchant(Enchantment.DAMAGE_ALL).build());
@@ -349,14 +446,16 @@ public class Arena extends BaseCommand implements Listener {
         var player = (Player) e.getView().getPlayer();
         var isIn = isInArena(player);
         if (isIn) {
-            if(e.getRecipe() == null) return;
+            if (e.getRecipe() == null)
+                return;
             var result = e.getRecipe().getResult();
             if (result != null) {
                 switch (result.getType()) {
                     case DIAMOND_PICKAXE:
-                        var i = new ItemStack(Material.DIAMOND_PICKAXE);
-                        //NamespacedKey item = new NamespacedKey(namespace, key)
-                        //meta.setDestroyableKeys(Material.END_STONE);
+                        var meta = result.getItemMeta();
+                        meta.setDestroyableKeys(destroyableKeys);
+                        result.setItemMeta(meta);
+                        e.getInventory().setResult(result);
                     case STICK:
                     case DIAMOND_CHESTPLATE:
                     case DIAMOND_LEGGINGS:
@@ -366,7 +465,7 @@ public class Arena extends BaseCommand implements Listener {
                     case DIAMOND_AXE:
                         return;
                     default:
-                        e.getInventory().setResult(new ItemStack(Material.AIR));
+                        e.getInventory().setResult(null);
                         break;
                 }
             }
@@ -376,8 +475,8 @@ public class Arena extends BaseCommand implements Listener {
     }
 
     @EventHandler
-    public void onItemSpawn(ItemSpawnEvent e){
-        if(e.getEntity().getItemStack().getType().equals(Material.ANCIENT_DEBRIS)){
+    public void onItemSpawn(ItemSpawnEvent e) {
+        if (e.getEntity().getItemStack().getType().equals(Material.ANCIENT_DEBRIS)) {
             e.getEntity().getItemStack().setType(Material.NETHERITE_SCRAP);
         }
     }
@@ -394,7 +493,7 @@ public class Arena extends BaseCommand implements Listener {
             } else {
                 player.damage(1000);
             }
-            cache.invalidate(player.getUniqueId());
+            arenaUsers.remove(player.getUniqueId());
 
         }
     }

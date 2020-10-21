@@ -1,13 +1,18 @@
 package us.jcedeno.hangar.paper;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Egg;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Snowball;
+import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -67,6 +72,7 @@ public class GlobalListeners implements Listener {
         });
         player.setFoodLevel(20);
         player.setSaturation(20F);
+        player.setGameMode(GameMode.ADVENTURE);
         e.setJoinMessage("");
         giveTransciever(player);
         // Send the player a scoreboard
@@ -107,9 +113,12 @@ public class GlobalListeners implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onArrow(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Arrow))
+        var damager = e.getDamager();
+        if (damager instanceof Trident || damager instanceof Egg || damager instanceof FishHook ||
+            damager instanceof Snowball || !(damager instanceof Projectile))
             return;
-        if (!(((Arrow) e.getDamager()).getShooter() instanceof Player))
+            
+        if (!(((Projectile) e.getDamager()).getShooter() instanceof Player))
             return;
         if (!(e.getEntity() instanceof Player))
             return;
@@ -119,7 +128,7 @@ public class GlobalListeners implements Listener {
         if (p.getHealth() - e.getFinalDamage() <= 0.0D || p.isBlocking())
             return;
 
-        Player shooter = ((Player) ((Arrow) e.getDamager()).getShooter());
+        Player shooter = ((Player) ((Projectile) e.getDamager()).getShooter());
 
         if (shooter == p)
             return;
