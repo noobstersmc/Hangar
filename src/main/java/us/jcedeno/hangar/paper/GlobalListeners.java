@@ -9,6 +9,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FishHook;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
@@ -23,8 +24,9 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -102,8 +104,6 @@ public class GlobalListeners implements Listener {
         return e != null && e.getType().toString().contains("_AXE");
     }
 
-    
-
     @EventHandler
     public void cleanScoreboard(PlayerQuitEvent e) {
         // Remove old scoreboard if present.
@@ -114,21 +114,27 @@ public class GlobalListeners implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onArrow(EntityDamageByEntityEvent e) {
         var damager = e.getDamager();
-        if (damager instanceof Trident || damager instanceof Egg || damager instanceof FishHook ||
-            damager instanceof Snowball || !(damager instanceof Projectile))
+        if (damager instanceof Trident || damager instanceof Egg || damager instanceof FishHook
+                || damager instanceof Snowball || !(damager instanceof Projectile))
             return;
-            
+
         if (!(((Projectile) e.getDamager()).getShooter() instanceof Player))
             return;
         if (!(e.getEntity() instanceof Player))
             return;
 
+        Player shooter = ((Player) ((Projectile) e.getDamager()).getShooter());
+
+        var data = instance.getArena().getArenaUsers().get(shooter.getUniqueId());
+        if (data != null) {
+            data.setLastDamageTime(System.currentTimeMillis());
+        }
+        
         Player p = (Player) e.getEntity();
 
         if (p.getHealth() - e.getFinalDamage() <= 0.0D || p.isBlocking())
             return;
 
-        Player shooter = ((Player) ((Projectile) e.getDamager()).getShooter());
 
         if (shooter == p)
             return;
@@ -160,32 +166,61 @@ public class GlobalListeners implements Listener {
 
     }
 
+    private boolean humanInArena(HumanEntity entity) {
+        return instance.getArena().isInArena((Player) entity);
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent e) {
+        if (!humanInArena(e.getWhoClicked())) {
+            e.setCancelled(true);
+            return;
+        }
+        if (e.getOldCursor() != null && isTransceiver(e.getOldCursor()))
+            e.setCancelled(true);
+    }
+
     @EventHandler
     public void onTranscieverMove(InventoryClickEvent e) {
+        if (!humanInArena(e.getWhoClicked())) {
+            e.setCancelled(true);
+            return;
+        }
+        var c = e.getHotbarButton();
+        var f = e.getClickedInventory();
 
-            if ((e.getCursor() != null && isTransceiver(e.getCursor()))
-                    || (e.getCurrentItem() != null && isTransceiver(e.getCurrentItem()))) {
+        if (f != null) {
+            if ((f.getType() != InventoryType.PLAYER || e.getSlot() > 8) && isTransceiver(e.getCursor())) {
                 e.setCancelled(true);
-                return;
+                e.getWhoClicked().sendMessage(ChatColor.RED + "You must keep the tranceiver on your hotbar.");
             }
-
-            if (e.getClick() == ClickType.NUMBER_KEY) {
-                var button = e.getHotbarButton();
-                var hotbarItem = e.getClickedInventory().getItem(button);
-                if (hotbarItem != null && isTransceiver(hotbarItem)) {
+            if (c > -1) {
+                var item = e.getWhoClicked().getInventory().getContents()[c];
+                if (item != null && isTransceiver(item)) {
                     e.setCancelled(true);
-                    return;
+                    e.getWhoClicked().sendMessage(ChatColor.RED + "You must keep the tranceiver on your hotbar.");
+                } else {
+                    e.setCancelled(false);
                 }
+
             }
+        }
 
     }
 
     @EventHandler
     public void onPlayerSwap(PlayerSwapHandItemsEvent e) {
+        if (!humanInArena(e.getPlayer())) {
+            e.setCancelled(true);
+            return;
+        }
+
         var item = e.getMainHandItem();
         var offItem = e.getOffHandItem();
-        if ((item != null && isTransceiver(item)) || (offItem != null && isTransceiver(offItem)))
+        if ((item != null && isTransceiver(item)) || (offItem != null && isTransceiver(offItem))) {
+            e.getPlayer().sendMessage(ChatColor.RED + "You must keep the tranceiver on your hotbar.");
             e.setCancelled(true);
+        }
 
     }
 
@@ -216,9 +251,9 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
-        if (Bukkit.getOnlinePlayers().size() >= 100 && !e.getPlayer().hasPermission("reserved.slot"))
+        if (Bukkit.getOnlinePlayers().size() >= instance.getMaxSlots() && !e.getPlayer().hasPermission("reserved.slot"))
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
-                    "&fServer is full! \n &aGet your rank at noobstersuhc.buycraft.net"));
+                    "&fServer is full! \n &aGet your rank at &6noobsters.buycraft.net"));
 
     }
 

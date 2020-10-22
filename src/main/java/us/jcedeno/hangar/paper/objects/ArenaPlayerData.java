@@ -19,6 +19,7 @@ public class ArenaPlayerData {
     String location;
     Long lastDamageTime;
     int currentKills = 0;
+    ArenaPlayerInventory inventory;
 
     public void serializeInventory(PlayerInventory inv) {
         this.playerInventory = InventorySerializer.playerInventoryToBase64(inv);

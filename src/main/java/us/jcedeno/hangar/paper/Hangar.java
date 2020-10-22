@@ -1,5 +1,7 @@
 package us.jcedeno.hangar.paper;
 
+import com.google.gson.Gson;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitWorker;
@@ -7,8 +9,10 @@ import org.bukkit.scheduler.BukkitWorker;
 import co.aikar.commands.PaperCommandManager;
 import fr.mrmicky.fastinv.FastInvManager;
 import lombok.Getter;
+import lombok.Setter;
 import us.jcedeno.hangar.paper.chat.ChatManager;
 import us.jcedeno.hangar.paper.chat.LPManager;
+import us.jcedeno.hangar.paper.commands.SlotCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 
@@ -20,6 +24,7 @@ public class Hangar extends JavaPlugin {
     private @Getter Arena arena;
     private @Getter GlobalListeners globalListeners;
     private @Getter LPManager lpManager;
+    private @Getter @Setter int maxSlots = 100;
 
     // GUI tutorial: https://github.com/MrMicky-FR/FastInv
     // Scoreboard Tutorial: https://github.com/MrMicky-FR/FastBoard
@@ -36,6 +41,7 @@ public class Hangar extends JavaPlugin {
 
         this.scoreboardManager = new ScoreboardManager(this);
         this.commandManager = new PaperCommandManager(this);
+        this.commandManager.registerCommand(new SlotCMD(this));
         this.communicatorManager = new CommunicatorManager(this);
         this.lpManager = new LPManager(this);
         this.arena = new Arena(this);
@@ -43,11 +49,17 @@ public class Hangar extends JavaPlugin {
         Bukkit.getOnlinePlayers().forEach(all->{
             scoreboardManager.sendInitialBoard(all);
         });
+        var gson = new Gson();
+        arena.loadRestoreTaks(gson, Bukkit.getConsoleSender());
+        arena.loadPlayerData(gson, Bukkit.getConsoleSender());
 
     }
 
     @Override
     public void onDisable() {
+        var gson = new Gson();
+        arena.saveRestoreTaks(gson, Bukkit.getConsoleSender());
+        arena.savePlayerData(gson, Bukkit.getConsoleSender());
         getServer().getScheduler().getActiveWorkers().stream().filter(w -> w.getOwner() == this)
                 .map(BukkitWorker::getThread).forEach(Thread::interrupt);
         getServer().getScheduler().cancelTasks(this);
