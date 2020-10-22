@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -71,11 +72,13 @@ import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.events.KillStreakEvent;
 import us.jcedeno.hangar.paper.objects.ArenaPlayerData;
 import us.jcedeno.hangar.paper.objects.ArenaPlayerInventory;
 import us.jcedeno.hangar.paper.objects.BlockRestoreTask;
 import us.jcedeno.hangar.paper.objects.CoordinatePair;
 import us.jcedeno.hangar.paper.objects.InventorySerializer;
+import us.jcedeno.hangar.paper.objects.KillStreak;
 
 /**
  * InnerArena
@@ -101,8 +104,11 @@ public class Arena extends BaseCommand implements Listener {
     // Local Scoreboard for hearts
     private Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     // File name for arena-data
+    private Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static String ARENA_JSON = Bukkit.getWorldContainer().getPath() + File.separatorChar + "arena-data.json";
     private static String TASKS_JSON = Bukkit.getWorldContainer().getPath() + File.separatorChar + "arena-tasks.json";
+    private static String KILLSTREAK_JSON = Bukkit.getWorldContainer().getPath() + File.separatorChar
+            + "arena-kill-streak.json";
 
     public Arena(Hangar instance) {
         this.instance = instance;
@@ -186,6 +192,21 @@ public class Arena extends BaseCommand implements Listener {
         var gson = new GsonBuilder().setPrettyPrinting().create();
         loadPlayerData(gson, sender);
         loadRestoreTaks(gson, sender);
+
+    }
+
+    @Subcommand("call")
+    public void call(Player sender, Integer kills) {
+        Bukkit.getPluginManager().callEvent(new KillStreakEvent(sender.getUniqueId(), kills));
+
+    }
+
+    @Subcommand("random")
+    public void addRandomData(CommandSender sender) {
+        for (int i = 0; i < 10; i++) {
+
+            Bukkit.getPluginManager().callEvent(new KillStreakEvent(UUID.randomUUID(), random.nextInt(100) + 1));
+        }
 
     }
 
@@ -335,7 +356,7 @@ public class Arena extends BaseCommand implements Listener {
                     e.setCancelled(true);
                     block.setType(Material.BEDROCK);
 
-                    scheduleRestoreTask(block, 60_000L, 60 * 20L);
+                    scheduleRestoreTask(block, 180_000L, 180 * 20L);
 
                     var relative = e.getBlock().getRelative(BlockFace.UP);
 
@@ -456,7 +477,7 @@ public class Arena extends BaseCommand implements Listener {
                     break;
                 }
                 case DIAMOND_AXE: {
-                    if (inv.getAxe() > -1)
+                    if (inv.getAxe() >= -1)
                         continue;
                     inv.setAxe(i);
                     break;
@@ -466,7 +487,7 @@ public class Arena extends BaseCommand implements Listener {
                     break;
                 }
                 case IRON_SWORD: {
-                    if (inv.getSword() > -1)
+                    if (inv.getSword() >= -1)
                         continue;
                     inv.setSword(i);
                     break;
@@ -499,6 +520,8 @@ public class Arena extends BaseCommand implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void respawn(PlayerDeathEvent e) {
         e.getEntity().setHealth(20.0D);
+        e.getEntity().setFireTicks(0);
+        e.getEntity().getActivePotionEffects().forEach(eff -> e.getEntity().removePotionEffect(eff.getType()));
 
     }
 
@@ -538,6 +561,8 @@ public class Arena extends BaseCommand implements Listener {
             killerData.setCurrentKills(killerData.getCurrentKills() + 1);
             // random drops
             if (killerData.getCurrentKills() >= 2) {
+                Bukkit.getPluginManager()
+                        .callEvent(new KillStreakEvent(killer.getUniqueId(), killerData.getCurrentKills()));
                 e.getDrops().add(new ItemBuilder(random.nextBoolean() ? Material.OAK_PLANKS : Material.BOOK).build());
             }
         }
@@ -554,6 +579,65 @@ public class Arena extends BaseCommand implements Listener {
         e.getDrops().add(new ItemBuilder(Material.GOLDEN_APPLE).amount(2).build());
         var loc = e.getEntity().getLocation();
         loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(7);
+
+    }
+
+    public ArrayList<KillStreak> getKillStreaks() throws Exception {
+        var file = new File(KILLSTREAK_JSON);
+        var ks = new ArrayList<KillStreak>();
+
+        if (!file.exists()) {
+            file.createNewFile();
+            return ks;
+        }
+        var reader = Files.newBufferedReader(Paths.get(KILLSTREAK_JSON));
+        var jsonArray = gson.fromJson(reader, JsonArray.class);
+
+        jsonArray.forEach(element -> ks.add(gson.fromJson(element, KillStreak.class)));
+
+        Collections.sort(ks);
+
+        reader.close();
+
+        return ks;
+    }
+
+    public void saveKillStreaks(List<KillStreak> arr) throws Exception {
+        var writer = new FileWriter(KILLSTREAK_JSON);
+        gson.toJson(arr, writer);
+        writer.flush();
+        writer.close();
+
+    }
+
+    @EventHandler
+    public void onKillStreak(KillStreakEvent e) {
+        try {
+            var currentStreaks = getKillStreaks();
+            var iterator = currentStreaks.iterator();
+            boolean update = false;
+            while (iterator.hasNext()) {
+                var next = iterator.next();
+                if (next.sameUser(e.getUuid())) {
+                    if (e.getKills() > next.getKills()) {
+                        update = true;
+                        next.setKills(e.getKills());
+                        next.setDate(e.getTimeOfDeath());
+                        break;
+                    }
+                    return;
+                }
+            }
+            if (!update) {
+                currentStreaks.add(KillStreak.of(e.getUuid(), e.getTimeOfDeath(), e.getKills()));
+            }
+            Collections.sort(currentStreaks, Collections.reverseOrder());
+            var trimmed = currentStreaks.subList(0, currentStreaks.size() >= 10 ? 10 : currentStreaks.size());
+            saveKillStreaks(trimmed);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
     }
 
@@ -637,7 +721,7 @@ public class Arena extends BaseCommand implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onDropEvent(PlayerDropItemEvent e) {
         var player = e.getPlayer();
         if (!isInArena(player))
@@ -653,7 +737,7 @@ public class Arena extends BaseCommand implements Listener {
                 case COOKIE:
                 case POTION:
                 case APPLE:
-                case NETHERITE_SCRAP:
+                case NETHERITE_INGOT:
                     e.setCancelled(false);
                     break;
 

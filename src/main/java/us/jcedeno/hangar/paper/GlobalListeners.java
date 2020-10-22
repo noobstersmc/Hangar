@@ -41,7 +41,11 @@ import org.bukkit.potion.PotionEffectType;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
+import me.lucko.helper.hologram.Hologram;
+import me.lucko.helper.hologram.HologramFactory;
+import me.lucko.helper.serialize.Position;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 
@@ -62,6 +66,7 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         var player = e.getPlayer();
+
         var header = ChatColor.of("#A40A0A") + "" + ChatColor.BOLD + "\nNOOBSTERS\n";
         var footer = ChatColor.of("#4788d9") + "\nJoin Our Community!\n" + ChatColor.of("#2be49c")
                 + "discord.noobsters.net\n" + ChatColor.AQUA + "twitter.com/NoobstersMC\n " + ChatColor.GOLD
@@ -241,9 +246,11 @@ public class GlobalListeners implements Listener {
         player.getActivePotionEffects().forEach(a -> player.removePotionEffect(a.getType()));
         // Add transceiver to slot 4 (5) on the hotbar
         inv.setItem(4, new ItemBuilder(Material.NETHER_STAR).name(TRANSCEIVER_NAME).enchant(Enchantment.VANISHING_CURSE)
-                .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
+        .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
         inv.setItem(0, new ItemBuilder(Material.NETHERITE_SWORD).name(ARENA_NAME).enchant(Enchantment.VANISHING_CURSE)
                 .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
+
+
     }
     /*
      * Transciever code ends
