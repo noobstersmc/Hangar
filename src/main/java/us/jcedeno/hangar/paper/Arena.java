@@ -335,7 +335,7 @@ public class Arena extends BaseCommand implements Listener {
                     e.setCancelled(true);
                     block.setType(Material.BEDROCK);
 
-                    scheduleRestoreTask(block, 180_000L, 180 * 20L);
+                    scheduleRestoreTask(block, 60_000L, 60 * 20L);
 
                     var relative = e.getBlock().getRelative(BlockFace.UP);
 
