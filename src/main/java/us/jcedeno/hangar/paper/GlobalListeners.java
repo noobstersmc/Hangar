@@ -152,7 +152,7 @@ public class GlobalListeners implements Listener {
     public void onTransceiverOpen(PlayerInteractEvent e) {
         if (e.getAction() != Action.PHYSICAL && e.getMaterial() == Material.NETHER_STAR) {
             instance.getCommunicatorManager().getServerGui().open(e.getPlayer());
-        } else if (e.getMaterial() == Material.NETHERITE_SWORD) {
+        } else if (e.getMaterial() == Material.NETHERITE_SWORD && !instance.getArena().isInArena(e.getPlayer())) {
             e.getPlayer().performCommand("arena");
         }
     }
