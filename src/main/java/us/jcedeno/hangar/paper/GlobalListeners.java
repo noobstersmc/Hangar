@@ -344,7 +344,7 @@ public class GlobalListeners implements Listener {
             final var backToBaseDamage = damage / 1.5;
             final var damageDifferential = damage - backToBaseDamage;
             if (damageDifferential > 2)
-                e.setDamage(backToBaseDamage + 3);
+                e.setDamage(backToBaseDamage + 4);
 
         }
     }

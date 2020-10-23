@@ -117,8 +117,8 @@ public class Arena extends BaseCommand implements Listener {
                 .setDisplaySlot(DisplaySlot.PLAYER_LIST);
         scoreboard.registerNewObjective("health", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.HEARTS)
                 .setDisplaySlot(DisplaySlot.BELOW_NAME);
-        //Handle the kill streaks.
-        this.streakHandler = new KillStreakHandler(instance);        
+        // Handle the kill streaks.
+        this.streakHandler = new KillStreakHandler(instance);
     }
 
     // Commands
@@ -194,9 +194,36 @@ public class Arena extends BaseCommand implements Listener {
 
     }
 
-    @Subcommand("call")
-    public void call(Player sender, Integer kills) {
-        Bukkit.getPluginManager().callEvent(new KillStreakEvent(sender.getUniqueId(), kills));
+    @Subcommand("rgb")
+    public void call(Player sender) {
+
+        var s = instance.getScoreboardManager().getBoard(sender.getUniqueId());
+        var arrayOfColor = new ArrayList<java.awt.Color>();
+        for (float i = 0; i < 1.0f; i += 0.013f) {
+            var color = java.awt.Color.getHSBColor(i, 1.0f, 1.0f);
+            arrayOfColor.add(color);
+        }
+
+        var letras = "NOOBSTERS".toCharArray();
+
+        for (int i = 0; i < arrayOfColor.size(); i++) {
+            var builder = new StringBuilder();
+            int j = 0;
+
+            try {
+                for (var o : letras) {
+                    builder.append(ChatColor.of(arrayOfColor.get(i + j % (arrayOfColor.size()-2)).brighter()) + "" + ChatColor.BOLD + "");
+                    builder.append(o);
+                    j++;
+                }
+                Bukkit.getScheduler().runTaskLaterAsynchronously(instance, ()->{
+                    s.updateTitle(builder.toString());
+                }, 1+ i);
+                
+            } catch (Exception e) {
+                //TODO: handle exception
+            }
+        }
 
     }
 
@@ -580,7 +607,6 @@ public class Arena extends BaseCommand implements Listener {
         loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(7);
 
     }
-
 
     private Location getRandomLocation(World world) {
         int x = (random.nextBoolean() ? 1 : -1) * random.nextInt(radius / 2);

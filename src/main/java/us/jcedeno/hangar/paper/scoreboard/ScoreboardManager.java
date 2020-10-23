@@ -1,5 +1,6 @@
 package us.jcedeno.hangar.paper.scoreboard;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -57,7 +58,6 @@ public class ScoreboardManager {
         boards.putIfAbsent(uuid, fb);
     }
 
-
     public void sendInitialBoard(Player player) {
         // Get or create a new board
         var fb = boards.getOrDefault(player.getUniqueId(), new FastBoard(player));
@@ -68,7 +68,7 @@ public class ScoreboardManager {
                 ChatColor.of("#2be49c") + "Online Players: ",
                 " " + ChatColor.WHITE + instance.getCommunicatorManager().getProxyPlayers(), "",
                 ChatColor.WHITE + "noobsters.net");
-                
+
         boards.putIfAbsent(player.getUniqueId(), fb);
     }
 
@@ -76,6 +76,22 @@ public class ScoreboardManager {
         var group = instance.getChatManager().getPerms().getPrimaryGroup(player);
         var first = group.charAt(0);
         return (first + "").toUpperCase() + instance.getChatManager().getPerms().getPrimaryGroup(player).substring(1);
+    }
+
+    public static void main(String[] args) {
+        for (float i = 0; i < 1.0f; i+=0.01f) {
+            
+        var color = Color.getHSBColor(i, 1.0f, 1.0f);
+        var coloronhex = String.format("#%06X", (0xFFFFFF & color.getRGB()));
+        System.out.println(coloronhex);
+        }
+    }
+
+    public static void rgb() {
+    }
+
+    public FastBoard getBoard(UUID uuid){
+        return boards.get(uuid);
     }
 
 }
