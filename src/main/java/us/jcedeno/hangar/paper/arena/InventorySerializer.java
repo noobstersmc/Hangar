@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.objects;
+package us.jcedeno.hangar.paper.arena;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

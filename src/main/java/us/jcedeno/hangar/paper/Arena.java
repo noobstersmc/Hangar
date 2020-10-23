@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -72,13 +71,13 @@ import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.arena.ArenaPlayerData;
+import us.jcedeno.hangar.paper.arena.ArenaPlayerInventory;
+import us.jcedeno.hangar.paper.arena.BlockRestoreTask;
+import us.jcedeno.hangar.paper.arena.InventorySerializer;
+import us.jcedeno.hangar.paper.arena.KillStreakHandler;
 import us.jcedeno.hangar.paper.events.KillStreakEvent;
-import us.jcedeno.hangar.paper.objects.ArenaPlayerData;
-import us.jcedeno.hangar.paper.objects.ArenaPlayerInventory;
-import us.jcedeno.hangar.paper.objects.BlockRestoreTask;
 import us.jcedeno.hangar.paper.objects.CoordinatePair;
-import us.jcedeno.hangar.paper.objects.InventorySerializer;
-import us.jcedeno.hangar.paper.objects.KillStreak;
 
 /**
  * InnerArena
@@ -104,11 +103,9 @@ public class Arena extends BaseCommand implements Listener {
     // Local Scoreboard for hearts
     private Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     // File name for arena-data
-    private Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private static String ARENA_JSON = Bukkit.getWorldContainer().getPath() + File.separatorChar + "arena-data.json";
     private static String TASKS_JSON = Bukkit.getWorldContainer().getPath() + File.separatorChar + "arena-tasks.json";
-    private static String KILLSTREAK_JSON = Bukkit.getWorldContainer().getPath() + File.separatorChar
-            + "arena-kill-streak.json";
+    private @Getter KillStreakHandler streakHandler;
 
     public Arena(Hangar instance) {
         this.instance = instance;
@@ -120,6 +117,8 @@ public class Arena extends BaseCommand implements Listener {
                 .setDisplaySlot(DisplaySlot.PLAYER_LIST);
         scoreboard.registerNewObjective("health", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.HEARTS)
                 .setDisplaySlot(DisplaySlot.BELOW_NAME);
+        //Handle the kill streaks.
+        this.streakHandler = new KillStreakHandler(instance);        
     }
 
     // Commands
@@ -582,64 +581,6 @@ public class Arena extends BaseCommand implements Listener {
 
     }
 
-    public ArrayList<KillStreak> getKillStreaks() throws Exception {
-        var file = new File(KILLSTREAK_JSON);
-        var ks = new ArrayList<KillStreak>();
-
-        if (!file.exists()) {
-            file.createNewFile();
-            return ks;
-        }
-        var reader = Files.newBufferedReader(Paths.get(KILLSTREAK_JSON));
-        var jsonArray = gson.fromJson(reader, JsonArray.class);
-
-        jsonArray.forEach(element -> ks.add(gson.fromJson(element, KillStreak.class)));
-
-        Collections.sort(ks);
-
-        reader.close();
-
-        return ks;
-    }
-
-    public void saveKillStreaks(List<KillStreak> arr) throws Exception {
-        var writer = new FileWriter(KILLSTREAK_JSON);
-        gson.toJson(arr, writer);
-        writer.flush();
-        writer.close();
-
-    }
-
-    @EventHandler
-    public void onKillStreak(KillStreakEvent e) {
-        try {
-            var currentStreaks = getKillStreaks();
-            var iterator = currentStreaks.iterator();
-            boolean update = false;
-            while (iterator.hasNext()) {
-                var next = iterator.next();
-                if (next.sameUser(e.getUuid())) {
-                    if (e.getKills() > next.getKills()) {
-                        update = true;
-                        next.setKills(e.getKills());
-                        next.setDate(e.getTimeOfDeath());
-                        break;
-                    }
-                    return;
-                }
-            }
-            if (!update) {
-                currentStreaks.add(KillStreak.of(e.getUuid(), e.getTimeOfDeath(), e.getKills()));
-            }
-            Collections.sort(currentStreaks, Collections.reverseOrder());
-            var trimmed = currentStreaks.subList(0, currentStreaks.size() >= 10 ? 10 : currentStreaks.size());
-            saveKillStreaks(trimmed);
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-    }
 
     private Location getRandomLocation(World world) {
         int x = (random.nextBoolean() ? 1 : -1) * random.nextInt(radius / 2);

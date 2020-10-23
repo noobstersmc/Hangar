@@ -41,11 +41,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
-import me.lucko.helper.hologram.Hologram;
-import me.lucko.helper.hologram.HologramFactory;
-import me.lucko.helper.serialize.Position;
 import net.md_5.bungee.api.ChatColor;
-import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 
