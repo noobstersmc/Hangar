@@ -173,7 +173,7 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onDrag(InventoryDragEvent e) {
-        if (!humanInArena(e.getWhoClicked())) {
+        if (!humanInArena(e.getWhoClicked()) && !e.getWhoClicked().hasPermission("lobby.edit")) {
             e.setCancelled(true);
             return;
         }
@@ -183,7 +183,7 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onTranscieverMove(InventoryClickEvent e) {
-        if (!humanInArena(e.getWhoClicked())) {
+        if (!humanInArena(e.getWhoClicked()) && !e.getWhoClicked().hasPermission("lobby.edit")) {
             e.setCancelled(true);
             return;
         }
@@ -211,7 +211,7 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onPlayerSwap(PlayerSwapHandItemsEvent e) {
-        if (!humanInArena(e.getPlayer())) {
+        if (!humanInArena(e.getPlayer()) && !e.getPlayer().hasPermission("lobby.edit")) {
             e.setCancelled(true);
             return;
         }
