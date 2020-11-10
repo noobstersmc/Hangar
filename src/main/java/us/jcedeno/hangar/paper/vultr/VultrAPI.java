@@ -16,7 +16,7 @@ import us.jcedeno.hangar.paper.uhc.GameData;
 public class VultrAPI {
     private final static OkHttpClient client = new OkHttpClient();
     private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private final static String VULTR_API_KEY = "RSBCD6OMAKB6TNWS7PUBLGCLWKNTD36U7HGA";
+    private final static String VULTR_API_KEY = "6BVHW5PVJ53WDFIOT77GPXN2L6K4IZOI5PKQ";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     public static CompletableFuture<InstanceType[]> getInstances() {
