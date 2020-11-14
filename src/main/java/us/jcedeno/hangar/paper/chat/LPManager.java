@@ -12,33 +12,35 @@ public class LPManager {
     private Hangar instance;
     private ScoreboardManager scoreboardManager;
 
-    public LPManager(Hangar instance){
+    public LPManager(Hangar instance) {
         this.instance = instance;
         this.scoreboardManager = instance.getScoreboardManager();
 
         var plugin = Bukkit.getPluginManager().getPlugin("LuckPerms");
 
-        if(plugin != null){
+        if (plugin != null) {
             var lp = LuckPermsProvider.get();
             instance.getLogger().info("Hooking to LP");
             var bus = lp.getEventBus();
-            bus.subscribe(NodeAddEvent.class, e->{
-                if(e.getNode().getType() == NodeType.INHERITANCE && e.isUser()){
-                    if(e.getTarget() instanceof User){
-                        var user = (User)e.getTarget();
+            bus.subscribe(NodeAddEvent.class, e -> {
+                if (e.getNode().getType() == NodeType.INHERITANCE && e.isUser()) {
+                    if (e.getTarget() instanceof User) {
+                        var user = (User) e.getTarget();
                         var player = Bukkit.getPlayer(user.getUniqueId());
+                        if (player == null || !player.isOnline())
+                            return;
 
-                        var board = scoreboardManager.getBoards().get(user.getUniqueId());                        
-                        if(board != null){
+                        var board = scoreboardManager.getBoards().get(user.getUniqueId());
+                        if (board != null) {
                             board.updateLine(4, " " + scoreboardManager.getGroup(player));
                         }
                     }
                 }
             });
 
-        }else{
+        } else {
             instance.getLogger().info("Couldn't hook to luckperms.");
         }
     }
-    
+
 }
