@@ -1,7 +1,8 @@
 package us.jcedeno.hangar.paper.communicator;
 
-import java.util.Set;
+import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -10,7 +11,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -52,7 +52,6 @@ public class CommunicatorManager implements PluginMessageListener {
             getCount();
             // Obtain data from jedis
             Set<String> servers_data = jedis.keys("servers:*");
-            var data_iterator = servers_data.iterator();
             // Check for nulls or empty sets.
             if (servers_data == null || servers_data.isEmpty()) {
                 serverGui.setItem(0, new ItemBuilder(Material.APPLE)
@@ -66,6 +65,10 @@ public class CommunicatorManager implements PluginMessageListener {
                 serverGui.setItems(1, 4, null);
                 return;
             }
+            // System.out.println(servers_data);
+            var list_data = jedis.mget(servers_data.toArray(new String[] {}));
+            // System.out.println(list_data);
+            var data_iterator = list_data.iterator();
             // Analyze current items in the inventory and work with them.
             var currentItemsIterator = serverGui.getInventory().iterator();
             int last_pos = 0;
@@ -82,6 +85,11 @@ public class CommunicatorManager implements PluginMessageListener {
                     var from_as_item = getItemFromData(game_data);
                     currentItem.setType(from_as_item.getType());
                     currentItem.setItemMeta(from_as_item.getItemMeta());
+                    serverGui.setItem(currentItemsIterator.previousIndex(), from_as_item, (clickHandler) -> {
+                        var clicker = (Player) clickHandler.getWhoClicked();
+                        sendToGame(clicker, game_data);
+    
+                    });
                 }
             }
             // Iterate if there is any data left
@@ -98,7 +106,7 @@ public class CommunicatorManager implements PluginMessageListener {
                 });
             }
 
-        }, 25L, 10L);
+        }, 25L, 19L);
 
     }
 
@@ -110,13 +118,29 @@ public class CommunicatorManager implements PluginMessageListener {
         String game_id;
     }
 
+    HashMap<String, Long> cooldown = new HashMap<>();
+
     public void sendToGame(Player player, GameData game_data) {
-        var request = transfer_request.of(player.getName(), game_data.getIp(), game_data.getGameID());
+        var value = cooldown.get(player.getName());
+        if (value != null && (System.currentTimeMillis() - value) <= 2000) {
+            player.sendMessage("You must wait 2 seconds to connect again.");
+            return;
+        }
+        cooldown.put(player.getName(), System.currentTimeMillis());
+        var name = "game-" + game_data.getGameID().substring(0, 6);
+        var request = transfer_request.of(player.getName(), game_data.getIp(), name);
         var request_json = gson.toJson(request);
-        //Send the request to channel condor-transfer for proxy to read it
-        jedis.publish("condor-transfer", request_json);
+        // Send the request to channel condor-transfer for proxy to read it
         System.out.println(
                 "Sending " + player.getName() + " to " + game_data.getIp() + " (" + game_data.getGameID() + ")");
+        Bukkit.getScheduler().runTaskAsynchronously(instance, task -> {
+            try {
+                jedis.publish("condor-transfer", request_json);
+
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        });
     }
 
     private static Gson gson = new Gson();
@@ -130,6 +154,7 @@ public class CommunicatorManager implements PluginMessageListener {
         var item = new ItemStack(Material.STONE);
         switch (type.toLowerCase()) {
             case "uhc": {
+
                 item.setType(Material.ENCHANTED_GOLDEN_APPLE);
                 var meta = item.getItemMeta();
                 setMetaForUHC(meta, game_data);
@@ -145,9 +170,15 @@ public class CommunicatorManager implements PluginMessageListener {
                 break;
             }
             default: {
-                item.setType(Material.SPONGE);
+                // TODO: 404 Not found easter egg
+                /*
+                 * item.setType(Material.SPONGE); var meta = item.getItemMeta();
+                 * meta.setDisplayName("Unknown Server"); item.setItemMeta(meta);
+                 */
+                item.setType(Material.ENCHANTED_GOLDEN_APPLE);
                 var meta = item.getItemMeta();
-                meta.setDisplayName("Unknown Server");
+
+                setMetaForUHC(meta, game_data);
                 item.setItemMeta(meta);
                 break;
             }
