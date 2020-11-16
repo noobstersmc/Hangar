@@ -14,6 +14,7 @@ import us.jcedeno.hangar.paper.chat.ChatManager;
 import us.jcedeno.hangar.paper.chat.LPManager;
 import us.jcedeno.hangar.paper.commands.SlotCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
+import us.jcedeno.hangar.paper.condor.CondorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 
 public class Hangar extends JavaPlugin {
@@ -24,6 +25,7 @@ public class Hangar extends JavaPlugin {
     private @Getter Arena arena;
     private @Getter GlobalListeners globalListeners;
     private @Getter LPManager lpManager;
+    private @Getter CondorManager condorManager;
     private @Getter @Setter int maxSlots = 100;
 
     // GUI tutorial: https://github.com/MrMicky-FR/FastInv
@@ -46,12 +48,13 @@ public class Hangar extends JavaPlugin {
         this.lpManager = new LPManager(this);
         this.arena = new Arena(this);
         this.globalListeners = new GlobalListeners(this);
-        Bukkit.getOnlinePlayers().forEach(all->{
+        Bukkit.getOnlinePlayers().forEach(all -> {
             scoreboardManager.sendInitialBoard(all);
         });
         var gson = new Gson();
         arena.loadRestoreTaks(gson, Bukkit.getConsoleSender());
         arena.loadPlayerData(gson, Bukkit.getConsoleSender());
+        this.condorManager = new CondorManager(this);
 
     }
 

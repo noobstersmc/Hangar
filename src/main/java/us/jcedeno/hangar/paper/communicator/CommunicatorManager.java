@@ -85,11 +85,8 @@ public class CommunicatorManager implements PluginMessageListener {
                     var from_as_item = getItemFromData(game_data);
                     currentItem.setType(from_as_item.getType());
                     currentItem.setItemMeta(from_as_item.getItemMeta());
-                    serverGui.setItem(currentItemsIterator.previousIndex(), from_as_item, (clickHandler) -> {
-                        var clicker = (Player) clickHandler.getWhoClicked();
-                        sendToGame(clicker, game_data);
-    
-                    });
+                    serverGui.setItem(currentItemsIterator.previousIndex(), from_as_item,
+                            (clickHandler) -> sendToGame((Player) clickHandler.getWhoClicked(), game_data));
                 }
             }
             // Iterate if there is any data left
@@ -99,11 +96,8 @@ public class CommunicatorManager implements PluginMessageListener {
                 var game_data = fromData(data);
                 var from_as_item = getItemFromData(game_data);
                 // Add to gui
-                serverGui.addItem(from_as_item, (clickHandler) -> {
-                    var clicker = (Player) clickHandler.getWhoClicked();
-                    sendToGame(clicker, game_data);
-
-                });
+                serverGui.addItem(from_as_item,
+                        (clickHandler) -> sendToGame((Player) clickHandler.getWhoClicked(), game_data));
             }
 
         }, 25L, 19L);
