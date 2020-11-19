@@ -43,8 +43,18 @@ public class UHCGui extends RapidInv {
         while (range_3_start <= range_3_end) {
             matches.add(range_3_start++);
         }
-        matches.forEach(all -> setItem(all, new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE)
-                .name(ChatColor.YELLOW + "Dummy UHC").lore("no data").build()));
+        var iterator = matches.iterator();
+        while (iterator.hasNext()) {
+            var next = iterator.next();
+            if (!iterator.hasNext()) {
+                setItem(next, new ItemBuilder(Material.SPECTRAL_ARROW).name(ChatColor.WHITE + "Next Page").build());
+                break;
+            } else {
+                setItem(next, new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE).name(ChatColor.YELLOW + "Dummy UHC")
+                        .lore("no data").build());
+            }
+
+        }
     }
 
 }
