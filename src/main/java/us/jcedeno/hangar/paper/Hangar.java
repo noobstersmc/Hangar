@@ -12,10 +12,12 @@ import lombok.Getter;
 import lombok.Setter;
 import us.jcedeno.hangar.paper.chat.ChatManager;
 import us.jcedeno.hangar.paper.chat.LPManager;
+import us.jcedeno.hangar.paper.commands.DebugCMD;
 import us.jcedeno.hangar.paper.commands.SlotCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
 import us.jcedeno.hangar.paper.condor.CondorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
+import us.jcedeno.hangar.paper.tranciever.RapidInvManager;
 
 public class Hangar extends JavaPlugin {
     private @Getter PaperCommandManager commandManager;
@@ -34,6 +36,7 @@ public class Hangar extends JavaPlugin {
     @Override
     public void onEnable() {
         FastInvManager.register(this);
+        RapidInvManager.register(this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("Vault")) {
             this.chatManager = new ChatManager(this);
@@ -55,6 +58,8 @@ public class Hangar extends JavaPlugin {
         arena.loadRestoreTaks(gson, Bukkit.getConsoleSender());
         arena.loadPlayerData(gson, Bukkit.getConsoleSender());
         this.condorManager = new CondorManager(this);
+
+        this.commandManager.registerCommand(new DebugCMD(this));
 
     }
 
