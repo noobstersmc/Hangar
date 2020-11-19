@@ -66,6 +66,7 @@ public class Hangar extends JavaPlugin {
     @Override
     public void onDisable() {
         var gson = new Gson();
+        communicatorManager.getJedis().disconnect();
         arena.saveRestoreTaks(gson, Bukkit.getConsoleSender());
         arena.savePlayerData(gson, Bukkit.getConsoleSender());
         getServer().getScheduler().getActiveWorkers().stream().filter(w -> w.getOwner() == this)

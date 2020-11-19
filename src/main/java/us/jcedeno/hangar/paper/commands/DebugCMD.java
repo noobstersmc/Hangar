@@ -8,6 +8,7 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Subcommand;
 import us.jcedeno.hangar.paper.Hangar;
+import us.jcedeno.hangar.paper.tranciever.creator.CreatorGUI;
 import us.jcedeno.hangar.paper.tranciever.creator.GameCreator;
 import us.jcedeno.hangar.paper.tranciever.guis.RecieverGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.UHCGui;
@@ -29,17 +30,18 @@ public class DebugCMD extends BaseCommand {
     public void openGui(Player sender) {
         recieverGUI.openChildren(sender);
     }
+
     @Subcommand("uhc")
     public void other(Player sender) {
         uhcGui.open(sender);
     }
 
     @Subcommand("create")
-    public void creator(Player player){
+    public void creator(Player player) {
+        new CreatorGUI("Creator", instance).open(player);
         var game = GameCreator.builder().seed("12134523").build();
         System.out.println(game);
 
     }
-
 
 }
