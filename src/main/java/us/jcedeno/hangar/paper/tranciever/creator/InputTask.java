@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
+import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 
 @RequiredArgsConstructor
 public class InputTask extends BukkitRunnable implements Listener {
@@ -60,13 +61,14 @@ public class InputTask extends BukkitRunnable implements Listener {
         e.setCancelled(true);
         this.cancel();
         player.resetTitle();
-        gui.getInventory().setItem(gui.slot_for_seed, new ItemBuilder(Material.WHEAT_SEEDS).name("Seed").lore(input).build());
+        gui.getInventory().getItem(gui.slot_for_seed).setLore(LoreBuilder.of(ChatColor.WHITE + input));
+        gui.getCreatorObject().setSeed(input);
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().runTask(instance, () -> gui.open(player));
     }
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent e){
+    public void onQuit(PlayerQuitEvent e) {
         if (e.getPlayer() != player) {
             return;
         }

@@ -1,7 +1,6 @@
 package us.jcedeno.hangar.paper.tranciever.creator;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,7 +23,7 @@ public class GameCreator {
     @Builder.Default
     Boolean private_game = false;
     @Builder.Default
-    List<String> scenarios = Collections.emptyList();
+    HashSet<ScenariosEnum> scenarios = new HashSet<>();
 
     public String toString() {
         return gson.toJson(this);

@@ -8,20 +8,23 @@ import org.bukkit.inventory.ItemFlag;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.SlotPos;
+import us.jcedeno.hangar.paper.tranciever.creator.CreatorGUI;
 
 public class UHCGui extends RapidInv {
 
-    public UHCGui(String title) {
+    public UHCGui(String title, Hangar instance) {
         super(54, title);
         setItem(SlotPos.from(4, 0), new ItemBuilder(Material.NETHERITE_HELMET).flags(ItemFlag.HIDE_ATTRIBUTES)
                 .name(ChatColor.GOLD + "Official Games").lore(ChatColor.WHITE + "Click to change game type.").build(),
                 (e) -> e.getWhoClicked().sendMessage("Switching to UHC Run"));
-        setItem(SlotPos.from(2, 5),
-                new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
-                        .name(ChatColor.GOLD + "Game Creator").build(),
-                (e) -> e.getWhoClicked().sendMessage("Openning game creator"));
+        setItem(SlotPos.from(2, 5), new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
+                .name(ChatColor.GOLD + "Game Creator").build(), (e) -> {
+                    var gameCreatorWindow = new CreatorGUI("Creator", instance, this);
+                    gameCreatorWindow.open(((Player) e.getWhoClicked()));
+                });
         setItem(SlotPos.from(4, 5), new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.GOLD + "Home").build(),
                 (e) -> ((Player) e.getWhoClicked()).performCommand("debug"));
         setItem(SlotPos.from(6, 5), new ItemBuilder(Material.LODESTONE).name(ChatColor.GOLD + "Private Games").build(),

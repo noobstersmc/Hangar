@@ -26,8 +26,10 @@ public class TeamSizeGUI extends RapidInv {
 
         setItem(2, getPlayerHead(player, "Team Size:"), e -> {
             System.out.println("Team size " + size);
-            creator.getInventory().getItem(creator.slot_for_teamsize).setLore(LoreBuilder.of(ChatColor.WHITE + (size > 1 ? "To" + size : "FFA")));
+            creator.getInventory().getItem(creator.slot_for_teamsize)
+                    .setLore(LoreBuilder.of(ChatColor.WHITE + (size > 1 ? "To" + size : "FFA")));
             creator.open(player);
+            creator.getCreatorObject().setTeam_size(size);
         });
 
         // Add substact items
