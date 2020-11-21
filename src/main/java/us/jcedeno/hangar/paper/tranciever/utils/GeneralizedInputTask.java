@@ -22,6 +22,11 @@ public class GeneralizedInputTask extends BukkitRunnable implements Listener {
     private Consumer<GeneralizedInputTask> runConsumer;
     private Consumer<String> input;
 
+    public BukkitTask start(long delay, long period) {
+        this.register();
+        return this.runTaskTimerAsynchronously(plugin, delay, period);
+    }
+
     @Override
     public void run() {
         runConsumer.accept(this);
@@ -45,11 +50,6 @@ public class GeneralizedInputTask extends BukkitRunnable implements Listener {
             return;
         }
         unregister();
-    }
-
-    public BukkitTask start(long delay, long period) {
-        this.register();
-        return this.runTaskTimerAsynchronously(plugin, delay, period);
     }
 
     private void register() {

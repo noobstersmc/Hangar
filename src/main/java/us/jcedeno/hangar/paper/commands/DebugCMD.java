@@ -23,7 +23,6 @@ public class DebugCMD extends BaseCommand {
     public void creator(Player player) {
         GeneralizedInputTask.of(player, instance, (inputTask) -> {
             player.sendMessage("PROVIDE INPUT");
-
         }, response -> {
             Bukkit.broadcastMessage("Provided input: " + response);
         }).start(5l, 20L);

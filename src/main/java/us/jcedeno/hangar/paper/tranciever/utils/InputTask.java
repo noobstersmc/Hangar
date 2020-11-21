@@ -73,7 +73,6 @@ public class InputTask extends BukkitRunnable implements Listener {
         }
         this.cancel();
         HandlerList.unregisterAll(this);
-        System.out.println("Cancelled server creation task.");
     }
 
 }
