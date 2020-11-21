@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.creator;
+package us.jcedeno.hangar.paper.tranciever.utils;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -47,7 +47,6 @@ public enum ScenariosEnum {
                 return "Timebomb";
             default:
                 return super.toString();
-
         }
     }
 

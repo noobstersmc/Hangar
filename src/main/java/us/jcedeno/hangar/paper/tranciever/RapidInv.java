@@ -33,8 +33,9 @@ public class RapidInv implements InventoryHolder {
     public Set<Consumer<InventoryOpenEvent>> openHandlers;
     public Set<Consumer<InventoryCloseEvent>> closeHandlers;
     public Set<Consumer<InventoryClickEvent>> clickHandlers;
+    // Parent child and clone behavior
     public RapidInv parentInventory;
-    public Set<RapidInv> children;
+    public Set<RapidInv> children, clones;
 
     public Predicate<Player> closeFilter;
     public Inventory inventory;
@@ -56,12 +57,12 @@ public class RapidInv implements InventoryHolder {
         newInventory.itemHandlers.putAll(this.itemHandlers);
         newInventory.inventory.setContents(this.getInventory().getContents());
         newInventory.parentInventory = this;
-        
-        if (children == null) {
-            children = new HashSet<>();
+
+        if (clones == null) {
+            clones = new HashSet<>();
         }
 
-        this.children.add(newInventory);
+        this.clones.add(newInventory);
 
         return newInventory;
     }
@@ -176,9 +177,9 @@ public class RapidInv implements InventoryHolder {
      * @param handler The click handler for the item
      */
     public void updateItem(int slot, ItemStack item, Consumer<InventoryClickEvent> handler) {
-        //Notify children GUIs of change
-        children.forEach(allChildren -> allChildren.updateItem(slot, item, handler));
-        //Update the item if there is one, otherwise add it
+        // Notify clones of the change.
+        clones.parallelStream().forEach(clones -> clones.updateItem(slot, item, handler));
+        // Update the item if there is one, otherwise add it
         var oldItem = inventory.getItem(slot);
         if (oldItem != null) {
             oldItem.setType(item.getType());

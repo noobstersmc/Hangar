@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.guis;
+package us.jcedeno.hangar.paper.tranciever.guis.tranceiver;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -11,7 +11,7 @@ import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
-import us.jcedeno.hangar.paper.tranciever.SlotPos;
+import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
 public class RecieverGUI extends RapidInv {
 

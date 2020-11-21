@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.creator;
+package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,8 @@ import org.bukkit.inventory.ItemFlag;
 import fr.mrmicky.fastinv.ItemBuilder;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
-import us.jcedeno.hangar.paper.tranciever.SlotPos;
+import us.jcedeno.hangar.paper.tranciever.utils.ScenariosEnum;
+import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
 public class ScenarioSelectorGUI extends RapidInv {
     private CreatorGUI creator;

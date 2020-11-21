@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.creator;
+package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -10,7 +10,9 @@ import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
-import us.jcedeno.hangar.paper.tranciever.SlotPos;
+import us.jcedeno.hangar.paper.tranciever.utils.InputTask;
+import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
+import us.jcedeno.hangar.paper.tranciever.utils.TerrainGeneration;
 
 public class CreatorGUI extends RapidInv {
     private RapidInv parentGui;

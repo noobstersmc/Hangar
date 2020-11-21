@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.creator;
+package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
 import org.bukkit.Color;
 import org.bukkit.Material;

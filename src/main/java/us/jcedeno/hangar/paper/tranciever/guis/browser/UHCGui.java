@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.guis;
+package us.jcedeno.hangar.paper.tranciever.guis.browser;
 
 import java.util.ArrayList;
 
@@ -10,8 +10,8 @@ import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
-import us.jcedeno.hangar.paper.tranciever.SlotPos;
-import us.jcedeno.hangar.paper.tranciever.creator.CreatorGUI;
+import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
+import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
 public class UHCGui extends RapidInv {
 

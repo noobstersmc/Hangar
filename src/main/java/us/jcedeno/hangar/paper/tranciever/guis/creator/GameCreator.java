@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.creator;
+package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
 import java.util.HashSet;
 
@@ -7,6 +7,8 @@ import com.google.gson.GsonBuilder;
 
 import lombok.Builder;
 import lombok.Data;
+import us.jcedeno.hangar.paper.tranciever.utils.ScenariosEnum;
+import us.jcedeno.hangar.paper.tranciever.utils.TerrainGeneration;
 
 @Builder
 @Data
