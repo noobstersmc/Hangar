@@ -32,6 +32,8 @@ public class CreatorGUI extends RapidInv {
     public static int slot_for_launch = SlotPos.from(5, 3);
     public static int slot_for_home = SlotPos.from(3, 3);
     // Boiler-plate ends
+    private TeamSizeGUI teamSizeGUI;
+    private ScenarioSelectorGUI scenarioSelectorGUI;
 
     public CreatorGUI(String title, RapidInv parentInventory, Plugin instance, GameType gameType) {
         super(4 * 9, title);
@@ -74,14 +76,18 @@ public class CreatorGUI extends RapidInv {
         });
         setItem(slot_for_teamsize, TEAM_ITEM, e -> {
             var player = (Player) e.getWhoClicked();
-            var teamSizeSelector = new TeamSizeGUI(player, this, "Team Size");
-            teamSizeSelector.open(player);
+            if (teamSizeGUI == null) {
+                teamSizeGUI = new TeamSizeGUI(player, this, "Team Size");
+            }
+            teamSizeGUI.open(player);
         });
 
         setItem(slot_for_scenarios, SCENARIOS_ITEM, e -> {
             var player = (Player) e.getWhoClicked();
-            var scenarioSelector = new ScenarioSelectorGUI(this, player);
-            scenarioSelector.open(player);
+            if (scenarioSelectorGUI == null) {
+                scenarioSelectorGUI = new ScenarioSelectorGUI(this, player);
+            }
+            scenarioSelectorGUI.open(player);
         });
         setItem(slot_for_launch, LAUNCH_ITEM, e -> {
             System.out.println(gameCreator.toString());
