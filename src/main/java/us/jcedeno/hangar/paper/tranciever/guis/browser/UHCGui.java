@@ -10,7 +10,6 @@ import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
-import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
 import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
 public class UHCGui extends RapidInv {
@@ -22,8 +21,10 @@ public class UHCGui extends RapidInv {
                 (e) -> e.getWhoClicked().sendMessage("Switching to UHC Run"));
         setItem(SlotPos.from(2, 5), new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
                 .name(ChatColor.GOLD + "Game Creator").build(), (e) -> {
+                    /*
                     var gameCreatorWindow = new CreatorGUI("Creator", instance, this);
                     gameCreatorWindow.open(((Player) e.getWhoClicked()));
+                    */
                 });
         setItem(SlotPos.from(4, 5), new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.GOLD + "Home").build(),
                 (e) -> ((Player) e.getWhoClicked()).performCommand("debug"));

@@ -15,6 +15,9 @@ import org.bukkit.scheduler.BukkitTask;
 
 import lombok.AllArgsConstructor;
 
+/**
+ * Does handle exceptions yet.
+ */
 @AllArgsConstructor(staticName = "of")
 public class GeneralizedInputTask extends BukkitRunnable implements Listener {
     private Player player;
@@ -22,6 +25,11 @@ public class GeneralizedInputTask extends BukkitRunnable implements Listener {
     private Consumer<GeneralizedInputTask> runConsumer;
     private Consumer<String> input;
 
+    /**
+     * @param delay  Delay in ticks for the input to start.
+     * @param period How often in ticks will it repeat;
+     * @return BukkitTask representing the input run consumer.
+     */
     public BukkitTask start(long delay, long period) {
         this.register();
         return this.runTaskTimerAsynchronously(plugin, delay, period);
@@ -29,6 +37,10 @@ public class GeneralizedInputTask extends BukkitRunnable implements Listener {
 
     @Override
     public void run() {
+        if (player == null || !player.isOnline()) {
+            unregister();
+            return;
+        }
         runConsumer.accept(this);
     }
 

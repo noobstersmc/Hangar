@@ -18,6 +18,9 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+
+import lombok.Data;
 
 /**
  * Small and easy Bukkit inventory API with 1.7 to 1.16 support. The project is
@@ -26,19 +29,19 @@ import org.bukkit.inventory.ItemStack;
  * @author MrMicky
  * @version 3.0
  */
+@Data
 public class RapidInv implements InventoryHolder {
-
-    public Map<Integer, Consumer<InventoryClickEvent>> itemHandlers = new HashMap<>();
-
-    public Set<Consumer<InventoryOpenEvent>> openHandlers;
-    public Set<Consumer<InventoryCloseEvent>> closeHandlers;
-    public Set<Consumer<InventoryClickEvent>> clickHandlers;
+    // Slot event handler.
+    Map<Integer, Consumer<InventoryClickEvent>> itemHandlers = new HashMap<>();
+    // Event Handlers
+    Set<Consumer<InventoryOpenEvent>> openHandlers;
+    Set<Consumer<InventoryCloseEvent>> closeHandlers;
+    Set<Consumer<InventoryClickEvent>> clickHandlers;
+    Predicate<Player> closeFilter;
+    Inventory inventory;
     // Parent child and clone behavior
-    public RapidInv parentInventory;
-    public Set<RapidInv> children, clones;
-
-    public Predicate<Player> closeFilter;
-    public Inventory inventory;
+    RapidInv parentInventory;
+    Set<RapidInv> children, clones;
 
     /**
      * Create a new FastInv with a custom size.
@@ -319,6 +322,10 @@ public class RapidInv implements InventoryHolder {
      */
     public void open(Player player) {
         player.openInventory(inventory);
+    }
+
+    public void open(Player player, Plugin plugin) {
+        Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(inventory));
     }
 
     /**
