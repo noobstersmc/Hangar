@@ -14,6 +14,7 @@ import us.jcedeno.hangar.paper.chat.ChatManager;
 import us.jcedeno.hangar.paper.chat.LPManager;
 import us.jcedeno.hangar.paper.commands.SlotCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
+import us.jcedeno.hangar.paper.communicator.RapidInvManager;
 import us.jcedeno.hangar.paper.condor.CondorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 
@@ -34,6 +35,7 @@ public class Hangar extends JavaPlugin {
     @Override
     public void onEnable() {
         FastInvManager.register(this);
+        RapidInvManager.register(this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("Vault")) {
             this.chatManager = new ChatManager(this);
@@ -66,6 +68,7 @@ public class Hangar extends JavaPlugin {
         getServer().getScheduler().getActiveWorkers().stream().filter(w -> w.getOwner() == this)
                 .map(BukkitWorker::getThread).forEach(Thread::interrupt);
         getServer().getScheduler().cancelTasks(this);
+        this.communicatorManager.getJedis().disconnect();
 
     }
 
