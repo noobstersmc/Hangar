@@ -10,6 +10,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -41,6 +42,7 @@ public class RapidInv implements InventoryHolder {
     Inventory inventory;
     // Parent child and clone behavior
     RapidInv parentInventory;
+    RapidInv clonedInventory;
     Set<RapidInv> children, clones;
 
     /**
@@ -52,14 +54,18 @@ public class RapidInv implements InventoryHolder {
         this(size, InventoryType.CHEST.getDefaultTitle());
     }
 
+    public boolean isClone(){
+        return clonedInventory != null;
+    }
+
     public RapidInv clone(String title) {
         var newInventory = new RapidInv(this.getInventory().getSize(), this.getInventory().getType(), title);
         newInventory.openHandlers = this.openHandlers;
         newInventory.closeHandlers = this.closeHandlers;
         newInventory.clickHandlers = this.clickHandlers;
-        newInventory.itemHandlers.putAll(this.itemHandlers);
+        newInventory.itemHandlers = this.itemHandlers;
         newInventory.inventory.setContents(this.getInventory().getContents());
-        newInventory.parentInventory = this;
+        newInventory.clonedInventory = this;
 
         if (clones == null) {
             clones = new HashSet<>();
@@ -181,7 +187,9 @@ public class RapidInv implements InventoryHolder {
      */
     public void updateItem(int slot, ItemStack item, Consumer<InventoryClickEvent> handler) {
         // Notify clones of the change.
-        clones.parallelStream().forEach(clones -> clones.updateItem(slot, item, handler));
+        if (clones != null) {
+            clones.parallelStream().forEach(clones -> clones.updateItem(slot, item, handler));
+        }
         // Update the item if there is one, otherwise add it
         var oldItem = inventory.getItem(slot);
         if (oldItem != null) {
@@ -320,11 +328,11 @@ public class RapidInv implements InventoryHolder {
      *
      * @param player The player to open the menu.
      */
-    public void open(Player player) {
+    public <T extends HumanEntity> void open(T player) {
         player.openInventory(inventory);
     }
 
-    public void open(Player player, Plugin plugin) {
+    public <T extends HumanEntity> void open(T player, Plugin plugin) {
         Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(inventory));
     }
 

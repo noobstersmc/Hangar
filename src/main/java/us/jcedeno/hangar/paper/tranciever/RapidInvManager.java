@@ -107,10 +107,6 @@ public final class RapidInvManager {
                 if (inv.handleClose(e)) {
                     Bukkit.getScheduler().runTask(plugin, () -> inv.open((Player) e.getPlayer()));
                 }
-                //Clean up children on close.
-                if(inv.parentInventory != null){
-                    inv.parentInventory.children.remove(inv);
-                }
             }
         }
 
