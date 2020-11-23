@@ -254,7 +254,7 @@ public class Arena extends BaseCommand implements Listener {
             reader.close();
             new File(ARENA_JSON).delete();
         } catch (Exception e) {
-            // e.printStackTrace();
+            e.printStackTrace();
         }
 
     }

@@ -1,5 +1,7 @@
 package us.jcedeno.hangar.paper.tranciever.guis.tranceiver;
 
+import java.util.Set;
+
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -14,6 +16,7 @@ import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.browser.BrowserWindow;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
+import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
 public class RecieverGUI extends RapidInv {
@@ -44,6 +47,46 @@ public class RecieverGUI extends RapidInv {
         head.setLore(LoreBuilder.of(ChatColor.WHITE + "Coming soon."));
 
         this.setItem(SlotPos.from(4, 3), head);
+
+    }
+
+    public void update(Set<ServerData> data) {
+        var uhc_count = 0;
+        var uhc_server = 0;
+        var run_count = 0;
+        var run_server = 0;
+        var meetup_count = 0;
+        var meetup_server = 0;
+        
+
+        for (ServerData serverData : data) {
+            var uhcData = serverData.getUhcData();
+            switch (serverData.getGameType()) {
+                case UHC:
+                    uhc_count += uhcData.getPlayersOnline();
+                    uhc_server++;
+
+                    break;
+                case RUN:
+                    run_count += uhcData.getPlayersOnline();
+                    run_server++;
+                    break;
+                case MEETUP:
+                    meetup_count += uhcData.getPlayersOnline();
+                    meetup_server++;
+
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+        
+        getInventory().getItem(SlotPos.from(1, 1)).setLore(LoreBuilder.of(ChatColor.GRAY + "Players: " + ChatColor.WHITE + uhc_count, ChatColor.GRAY + "Servers: " + ChatColor.WHITE + uhc_server));
+        getInventory().getItem(SlotPos.from(3, 1)).setLore(LoreBuilder.of(ChatColor.GRAY + "Players: " + ChatColor.WHITE + run_count, ChatColor.GRAY + "Servers: " + ChatColor.WHITE + run_server));
+        getInventory().getItem(SlotPos.from(5, 1)).setLore(LoreBuilder.of(ChatColor.GRAY + "Players: " + ChatColor.WHITE + meetup_count, ChatColor.GRAY + "Servers: " + ChatColor.WHITE + meetup_server));
+
 
     }
 

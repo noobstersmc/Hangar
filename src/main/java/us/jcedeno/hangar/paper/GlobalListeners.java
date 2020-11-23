@@ -164,7 +164,7 @@ public class GlobalListeners implements Listener {
         }
         //Handle items.
         if (e.getAction() != Action.PHYSICAL && e.getMaterial() == Material.NETHER_STAR) {
-            instance.getCommunicatorManager().getServerGui().open(e.getPlayer());
+            e.getPlayer().performCommand("debug");
         } else if (e.getMaterial() == Material.NETHERITE_SWORD && !instance.getArena().isInArena(e.getPlayer())) {
             e.getPlayer().performCommand("arena");
         }

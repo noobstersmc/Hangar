@@ -14,7 +14,6 @@ import co.aikar.commands.annotation.Subcommand;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.browser.BrowserWindow;
-import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
 import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
 import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 
@@ -38,9 +37,6 @@ public class DebugCMD extends BaseCommand {
         
         var hashSet = new HashSet<ServerData>();
         var random = new Random();
-        hashSet.addAll(ServerData.getDummyData(random.nextInt(20)+1, GameType.UHC));
-        hashSet.addAll(ServerData.getDummyData(random.nextInt(20)+1, GameType.RUN));
-        hashSet.addAll(ServerData.getDummyData(random.nextInt(20)+1, GameType.MEETUP));
         
         Bukkit.getOnlinePlayers().forEach(all -> {
             var inv = all.getOpenInventory().getTopInventory();
@@ -50,7 +46,6 @@ public class DebugCMD extends BaseCommand {
 
                     Bukkit.broadcastMessage("Browser window");
                     var browser = (BrowserWindow) inv.getHolder();
-                    browser.update(hashSet);
                 }
             }
         });

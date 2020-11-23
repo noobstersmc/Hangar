@@ -24,7 +24,12 @@ public enum GameType {
             new ItemBuilder(Material.IRON_HELMET).name(ChatColor.YELLOW + "UHC Meetup Games")
                     .flags(ItemFlag.HIDE_ATTRIBUTES).lore(ChatColor.WHITE + "Click to change gamemodes.").build(),
             new ItemBuilder(Material.CROSSBOW).name(ChatColor.YELLOW + "UHC Meetup Match")
-                    .flags(ItemFlag.HIDE_ATTRIBUTES).build());
+                    .flags(ItemFlag.HIDE_ATTRIBUTES).build()),
+    PRIVATE("PRIVATE", TerrainGeneration.VANILLA,
+            new ItemBuilder(Material.IRON_HELMET).name(ChatColor.YELLOW + "Private UHC Games")
+                    .flags(ItemFlag.HIDE_ATTRIBUTES).lore(ChatColor.WHITE + "Click to change gamemodes.").build(),
+            new ItemBuilder(Material.CROSSBOW).name(ChatColor.YELLOW + "UHC Private").flags(ItemFlag.HIDE_ATTRIBUTES)
+                    .build());
 
     String name;
     TerrainGeneration defaulTerrainGeneration;
@@ -43,13 +48,29 @@ public enum GameType {
         return material;
     }
 
-    public ItemStack asServerDataIcon(String displayname, String... lore) {
+    public ItemStack asServerDataIcon(UHCData data) {
         var item = serverDataIcon.clone();
         var meta = item.getItemMeta();
-        meta.setLore(LoreBuilder.of(lore));
-        meta.setDisplayName(displayname);
+        var gray = ChatColor.of("#8c7373");
+        var white = ChatColor.WHITE;
+        var noobsters_red = ChatColor.of("#c73838");
+        meta.setLore(LoreBuilder.of(gray + "Config: " + white + data.getTeamSize() + " " + data.getScenarios(), "",
+                gray + "Game Time: " + white + timeConvert(data.getGameTime()),
+                gray + "Players Alive: " + white + data.getPlayersAlive(),
+                gray + "Spectators: " + white + data.getSpectators()));
+        meta.setDisplayName(noobsters_red + (data.getHostname() != null ? data.getHostname() : this.toString()));
         item.setItemMeta(meta);
         return item;
+    }
+
+    private String timeConvert(int t) {
+        int hours = t / 3600;
+
+        int minutes = (t % 3600) / 60;
+        int seconds = t % 60;
+
+        return hours > 0 ? String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                : String.format("%02d:%02d", minutes, seconds);
     }
 
     public TerrainGeneration getDefaulTerrainGeneration() {
@@ -66,6 +87,9 @@ public enum GameType {
 
     public GameType getNextType() {
         return values()[(this.ordinal() >= values().length - 1 ? 0 : this.ordinal() + 1)];
+    }
+    public GameType getPreviousType() {
+        return values()[(this.ordinal() >= 0 ? values().length - 1 : this.ordinal() - 1)];
     }
 
     public GameCreator getDefaulGameCreator() {

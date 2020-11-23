@@ -1,6 +1,7 @@
 package us.jcedeno.hangar.paper.communicator;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -14,15 +15,12 @@ import com.google.gson.Gson;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -30,6 +28,12 @@ import net.md_5.bungee.api.ChatColor;
 import redis.clients.jedis.Jedis;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
+import us.jcedeno.hangar.paper.tranciever.RapidInv;
+import us.jcedeno.hangar.paper.tranciever.guis.browser.BrowserWindow;
+import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.TransferRequest;
+import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.UHCData;
+import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
+import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.uhc.GameData;
 
 public class CommunicatorManager implements PluginMessageListener {
@@ -52,53 +56,26 @@ public class CommunicatorManager implements PluginMessageListener {
             getCount();
             // Obtain data from jedis
             Set<String> servers_data = jedis.keys("servers:*");
-            // Check for nulls or empty sets.
-            if (servers_data == null || servers_data.isEmpty()) {
-                serverGui.setItem(0, new ItemBuilder(Material.APPLE)
-                        .name(ChatColor.of("#c73838") + "" + ChatColor.BOLD + "No UHCs Running")
-                        .enchant(Enchantment.DURABILITY).flags(ItemFlag.HIDE_ENCHANTS)
-                        .addLore(
-                                ChatColor.WHITE + "Check " + ChatColor.BLUE + "discord.noobsters.net " + ChatColor.WHITE
-                                        + "or",
-                                ChatColor.AQUA + "@NoobstersUHC " + ChatColor.WHITE + "for upcoming games.")
-                        .build());
-                serverGui.setItems(1, 4, null);
+            if (servers_data.isEmpty())
                 return;
-            }
-            // System.out.println(servers_data);
             var list_data = jedis.mget(servers_data.toArray(new String[] {}));
-            // System.out.println(list_data);
-            var data_iterator = list_data.iterator();
-            // Analyze current items in the inventory and work with them.
-            var currentItemsIterator = serverGui.getInventory().iterator();
-            int last_pos = 0;
-            // Obtain the last index of a non air item.
-            while (currentItemsIterator.hasNext()) {
-                var currentItem = currentItemsIterator.next();
-                if (currentItem == null || currentItem.getType() == Material.AIR) {
-                    last_pos = currentItemsIterator.previousIndex();
-                    break;
-                } else if (data_iterator.hasNext()) {
-                    // Replace with new data
-                    var data = data_iterator.next();
-                    var game_data = fromData(data);
-                    var from_as_item = getItemFromData(game_data);
-                    currentItem.setType(from_as_item.getType());
-                    currentItem.setItemMeta(from_as_item.getItemMeta());
-                    serverGui.setItem(currentItemsIterator.previousIndex(), from_as_item,
-                            (clickHandler) -> sendToGame((Player) clickHandler.getWhoClicked(), game_data));
+            var set = new HashSet<ServerData>();
+            list_data.forEach(all -> {
+                set.add(gson.fromJson(all, ServerData.class));
+            });
+
+            Bukkit.getOnlinePlayers().forEach(all -> {
+                var inv = all.getOpenInventory().getTopInventory();
+                if (inv.getHolder() instanceof RapidInv) {
+                    if (inv.getHolder() instanceof BrowserWindow) {
+                        var browser = (BrowserWindow) inv.getHolder();
+                        browser.update(set);
+                    } else if (inv.getHolder() instanceof RecieverGUI) {
+                        var reciever = (RecieverGUI) inv.getHolder();
+                        reciever.update(set);
+                    }
                 }
-            }
-            // Iterate if there is any data left
-            while (data_iterator.hasNext()) {
-                // Replace with new data
-                var data = data_iterator.next();
-                var game_data = fromData(data);
-                var from_as_item = getItemFromData(game_data);
-                // Add to gui
-                serverGui.addItem(from_as_item,
-                        (clickHandler) -> sendToGame((Player) clickHandler.getWhoClicked(), game_data));
-            }
+            });
 
         }, 25L, 19L);
 
@@ -137,7 +114,34 @@ public class CommunicatorManager implements PluginMessageListener {
         });
     }
 
+    public void sendToIP(Player player, String ip, String ID) {
+        var value = cooldown.get(player.getName());
+        if (value != null && (System.currentTimeMillis() - value) <= 2000) {
+            player.sendMessage("You must wait 2 seconds to connect again.");
+            return;
+        }
+        cooldown.put(player.getName(), System.currentTimeMillis());
+        var name = "game-" + ID.substring(0, 6);
+        var request = TransferRequest.of(player.getName(), ip, name);
+        var request_json = gson.toJson(request);
+        // Send the request to channel condor-transfer for proxy to read it
+        System.out.println("Sending " + player.getName() + " to " + ip + " (" + name + ")");
+        Bukkit.getScheduler().runTaskAsynchronously(instance, task -> {
+            try {
+                jedis.publish("condor-transfer", request_json);
+
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        });
+    }
+
     private static Gson gson = new Gson();
+
+    private UHCData getFromData(String data) {
+        var old_format = fromData(data);
+        return UHCData.fromOldFormat(old_format);
+    }
 
     private GameData fromData(String data) {
         return gson.fromJson(data, GameData.class);

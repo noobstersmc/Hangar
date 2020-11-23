@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.gson.Gson;
+
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.plugin.Plugin;
@@ -17,9 +21,9 @@ import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
+import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.UHCData;
 import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
-import us.jcedeno.hangar.paper.uhc.GameData;
 
 public class BrowserWindow extends RapidInv {
 
@@ -31,9 +35,11 @@ public class BrowserWindow extends RapidInv {
     private CreatorGUI creatorGUI;
     private @Getter @Setter GameType currentType;
     private @Getter Set<ServerData> lastKnownData;
+    private Hangar instance;
 
     public BrowserWindow(GameType type, RapidInv parentInventory, Hangar instance) {
         super(9 * 6, type.toString() + " Browser");
+        this.instance = instance;
         if (parentInventory != null)
             setParentInventory(parentInventory);
         // Set the type
@@ -51,24 +57,29 @@ public class BrowserWindow extends RapidInv {
         setItem(slot_private_games, new ItemBuilder(Material.LODESTONE).name(ChatColor.GOLD + "Private Games").build(),
                 (e) -> e.getWhoClicked().sendMessage("Private games are not ready yet!"));
 
-        var hashSet = new HashSet<ServerData>();
-        hashSet.addAll(ServerData.getDummyData(16, GameType.UHC));
-        hashSet.addAll(ServerData.getDummyData(12, GameType.RUN));
-        hashSet.addAll(ServerData.getDummyData(19, GameType.MEETUP));
-
-        update(hashSet);
     }
 
     private void nextBrowser(InventoryClickEvent e) {
-        setCurrentType(getCurrentType().getNextType());
-        getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
-        update(lastKnownData);
+        if(e.getClick() == ClickType.RIGHT){
+            setCurrentType(getCurrentType().getNextType());
+            getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
+            update(lastKnownData);
+        }else{
+            setCurrentType(getCurrentType().getPreviousType());
+            getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
+            update(lastKnownData);
+        }
     }
 
     public void update(Set<ServerData> updateData) {
         // Just keep the data tha is related to our window.
         var managedData = new HashSet<>(updateData);
-        managedData.removeIf(all -> ((GameType) all.getExtra_data().get("game-type")) != getCurrentType());
+        if(getCurrentType() == GameType.PRIVATE){
+            managedData.removeIf(all -> !all.isPrivate_game());
+
+        }else{
+            managedData.removeIf(all -> all.getGameType() != getCurrentType() || all.isPrivate_game());
+        }
 
         if (managedData.isEmpty()) {
             addresablesIndexes.forEach(slot -> removeItem(slot));
@@ -81,8 +92,10 @@ public class BrowserWindow extends RapidInv {
             managedData.forEach(all -> {
                 if (indexIterator.hasNext()) {
                     var index = indexIterator.next();
-                    updateItem(index, getCurrentType().asServerDataIcon(all.getIpv4(), "Hola", "Que hace"), e -> {
-                        e.getWhoClicked().sendMessage("Clicked on " + all.getIpv4());
+                    var gson = new Gson();
+                    var data = gson.fromJson(all.getExtra_data().get("uhc-data").toString(), UHCData.class);
+                    updateItem(index, all.getGameType().asServerDataIcon(data), e -> {
+                        instance.getCommunicatorManager().sendToIP((Player)e.getWhoClicked(), all.getIpv4(), all.getGame_id().toString());
                     });
                 } else {
 
