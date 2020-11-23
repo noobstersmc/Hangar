@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent.Reason;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.Inventory;
@@ -72,10 +73,10 @@ public final class RapidInvManager {
                 if (!wasCancelled && !e.isCancelled()) {
                     e.setCancelled(false);
                 }
-            } 
+            }
         }
 
-        //PATCHED BY JCEDENO
+        // PATCHED BY JCEDENO
         @EventHandler(priority = EventPriority.HIGHEST)
         public void preventMoving(InventoryClickEvent e) {
             var clickedInventory = e.getClickedInventory();
@@ -103,6 +104,9 @@ public final class RapidInvManager {
         public void onInventoryClose(InventoryCloseEvent e) {
             if (e.getInventory().getHolder() instanceof RapidInv) {
                 RapidInv inv = (RapidInv) e.getInventory().getHolder();
+                if (e.getReason() == Reason.PLAYER || e.getReason() == Reason.DISCONNECT) {
+                    // TODO: HANDLE CLOSE
+                }
 
                 if (inv.handleClose(e)) {
                     Bukkit.getScheduler().runTask(plugin, () -> inv.open((Player) e.getPlayer()));

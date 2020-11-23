@@ -1,7 +1,11 @@
 package us.jcedeno.hangar.paper.uhc;
 
+import java.util.Set;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
+@AllArgsConstructor(staticName = "of")
 @Data
 public class GameData {
     String gameID;
@@ -18,5 +22,5 @@ public class GameData {
     String gameType;
     String hostname;
     String ip;
-    
+
 }

@@ -35,6 +35,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
@@ -44,6 +45,7 @@ import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
+import us.jcedeno.hangar.paper.tranciever.RapidInv;
 
 public class GlobalListeners implements Listener {
     private Hangar instance;
@@ -130,12 +132,11 @@ public class GlobalListeners implements Listener {
         if (data != null) {
             data.setLastDamageTime(System.currentTimeMillis());
         }
-        
+
         Player p = (Player) e.getEntity();
 
         if (p.getHealth() - e.getFinalDamage() <= 0.0D || p.isBlocking())
             return;
-
 
         if (shooter == p)
             return;
@@ -149,8 +150,19 @@ public class GlobalListeners implements Listener {
      * Transciever code starts
      */
 
+    private boolean isRapidInventory(Inventory inv) {
+        return inv != null && inv.getHolder() instanceof RapidInv;
+    }
+
     @EventHandler
     public void onTransceiverOpen(PlayerInteractEvent e) {
+        //Don't allow to interact if they already are viewing a rapidInv
+        var top = e.getPlayer().getOpenInventory().getTopInventory();
+        var bottom = e.getPlayer().getOpenInventory().getBottomInventory();
+        if (isRapidInventory(top) || isRapidInventory(bottom)) {
+            return;
+        }
+        //Handle items.
         if (e.getAction() != Action.PHYSICAL && e.getMaterial() == Material.NETHER_STAR) {
             instance.getCommunicatorManager().getServerGui().open(e.getPlayer());
         } else if (e.getMaterial() == Material.NETHERITE_SWORD && !instance.getArena().isInArena(e.getPlayer())) {
@@ -242,10 +254,9 @@ public class GlobalListeners implements Listener {
         player.getActivePotionEffects().forEach(a -> player.removePotionEffect(a.getType()));
         // Add transceiver to slot 4 (5) on the hotbar
         inv.setItem(4, new ItemBuilder(Material.NETHER_STAR).name(TRANSCEIVER_NAME).enchant(Enchantment.VANISHING_CURSE)
-        .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
+                .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
         inv.setItem(0, new ItemBuilder(Material.NETHERITE_SWORD).name(ARENA_NAME).enchant(Enchantment.VANISHING_CURSE)
                 .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES).build());
-
 
     }
     /*

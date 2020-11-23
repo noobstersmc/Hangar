@@ -63,11 +63,12 @@ public class ScoreboardManager {
         var fb = boards.getOrDefault(player.getUniqueId(), new FastBoard(player));
         fb.updateTitle(ChatColor.of("#A40A0A") + "" + ChatColor.BOLD + "NOOBSTERS");
         // Update the lines
-        fb.updateLines(ChatColor.of("#2be49c") + "User:", " " + ChatColor.WHITE + player.getName(), "",
-                ChatColor.of("#2be49c") + "Role: ", ChatColor.WHITE + " " + ChatManager.colorize(getGroup(player)), "",
+        fb.updateLines(ChatColor.of("#2be49c") + "User:",
+                " " + ChatColor.WHITE + player.getName() + "         \uEff3", "", ChatColor.of("#2be49c") + "Role: ",
+                ChatColor.WHITE + " " + ChatManager.colorize(getGroup(player)), "",
                 ChatColor.of("#2be49c") + "Online Players: ",
                 " " + ChatColor.WHITE + instance.getCommunicatorManager().getProxyPlayers(), "",
-                ChatColor.WHITE + "noobsters.net");
+                ChatColor.WHITE + "noobsters.net");         
 
         boards.putIfAbsent(player.getUniqueId(), fb);
     }
@@ -79,18 +80,18 @@ public class ScoreboardManager {
     }
 
     public static void main(String[] args) {
-        for (float i = 0; i < 1.0f; i+=0.01f) {
-            
-        var color = Color.getHSBColor(i, 1.0f, 1.0f);
-        var coloronhex = String.format("#%06X", (0xFFFFFF & color.getRGB()));
-        System.out.println(coloronhex);
+        for (float i = 0; i < 1.0f; i += 0.01f) {
+
+            var color = Color.getHSBColor(i, 1.0f, 1.0f);
+            var coloronhex = String.format("#%06X", (0xFFFFFF & color.getRGB()));
+            System.out.println(coloronhex);
         }
     }
 
     public static void rgb() {
     }
 
-    public FastBoard getBoard(UUID uuid){
+    public FastBoard getBoard(UUID uuid) {
         return boards.get(uuid);
     }
 

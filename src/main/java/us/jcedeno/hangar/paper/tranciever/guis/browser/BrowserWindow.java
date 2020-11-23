@@ -1,21 +1,23 @@
 package us.jcedeno.hangar.paper.tranciever.guis.browser;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
+import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 import us.jcedeno.hangar.paper.uhc.GameData;
 
@@ -28,28 +30,18 @@ public class BrowserWindow extends RapidInv {
     public static int slot_private_games = SlotPos.from(6, 5);
     private CreatorGUI creatorGUI;
     private @Getter @Setter GameType currentType;
-    private Set<GameData> lastKnownData;
+    private @Getter Set<ServerData> lastKnownData;
 
-    public BrowserWindow(GameType type, RapidInv parentInventory, Plugin instance) {
+    public BrowserWindow(GameType type, RapidInv parentInventory, Hangar instance) {
         super(9 * 6, type.toString() + " Browser");
         if (parentInventory != null)
             setParentInventory(parentInventory);
         // Set the type
         setCurrentType(type);
-        setItem(slot_browser_icon, type.getBrowserIcon(),
-                // TODO: HANDLE THE CLICK AND CHANGE BROWSER BASED ON CLICK
-                (e) -> {
-                    setCurrentType(getCurrentType().getNextType());
-                    updateItem(slot_browser_icon, currentType.getBrowserIcon(), predicado -> {
-                        e.getWhoClicked().sendMessage("Switching to " + type.getNextType().toString());
-                    });
-                    e.getWhoClicked().sendMessage("Switched to " + type.getNextType().toString());
-                    update(lastKnownData);
-
-                });
+        setItem(slot_browser_icon, type.getBrowserIcon(), (e) -> nextBrowser(e));
         setItem(slot_game_creator, new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
                 .name(ChatColor.GOLD + "Game Creator").build(), (e) -> {
-                    getCreator(type, instance).open(e.getWhoClicked());
+                    getCreator(getCurrentType(), instance).open(e.getWhoClicked());
                 });
         setItem(slot_home_button, new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.GOLD + "Home").build(), (e) -> {
             if (getParentInventory() != null) {
@@ -59,22 +51,46 @@ public class BrowserWindow extends RapidInv {
         setItem(slot_private_games, new ItemBuilder(Material.LODESTONE).name(ChatColor.GOLD + "Private Games").build(),
                 (e) -> e.getWhoClicked().sendMessage("Private games are not ready yet!"));
 
-        update(Collections.emptySet());
+        var hashSet = new HashSet<ServerData>();
+        hashSet.addAll(ServerData.getDummyData(16, GameType.UHC));
+        hashSet.addAll(ServerData.getDummyData(12, GameType.RUN));
+        hashSet.addAll(ServerData.getDummyData(19, GameType.MEETUP));
+
+        update(hashSet);
     }
 
-    public void update(Set<GameData> updateData) {
+    private void nextBrowser(InventoryClickEvent e) {
+        setCurrentType(getCurrentType().getNextType());
+        getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
+        update(lastKnownData);
+    }
+
+    public void update(Set<ServerData> updateData) {
         // Just keep the data tha is related to our window.
-        updateData.removeIf(data -> data.getGameType() != getCurrentType().toString());
-        if (updateData.isEmpty()) {
-            addresablesIndexes.forEach(slot -> updateItem(slot, new ItemStack(Material.AIR), e -> {
-            }));
+        var managedData = new HashSet<>(updateData);
+        managedData.removeIf(all -> ((GameType) all.getExtra_data().get("game-type")) != getCurrentType());
+
+        if (managedData.isEmpty()) {
+            addresablesIndexes.forEach(slot -> removeItem(slot));
             var first_index = addresablesIndexes.get(0);
-            updateItem(first_index, getCurrentType().getDefaultItem(),
+            setItem(first_index, getCurrentType().getDefaultItem(),
                     e -> e.getWhoClicked().sendMessage("No games running"));
 
         } else {
-            // Is there is data, then check latest data and update. Also handle pagination
-            // here.
+            var indexIterator = addresablesIndexes.iterator();
+            managedData.forEach(all -> {
+                if (indexIterator.hasNext()) {
+                    var index = indexIterator.next();
+                    updateItem(index, getCurrentType().asServerDataIcon(all.getIpv4(), "Hola", "Que hace"), e -> {
+                        e.getWhoClicked().sendMessage("Clicked on " + all.getIpv4());
+                    });
+                } else {
+
+                }
+            });
+            while (indexIterator.hasNext()) {
+                removeItem(indexIterator.next());
+            }
 
         }
 
