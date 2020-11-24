@@ -60,6 +60,10 @@ public class CommunicatorManager implements PluginMessageListener {
             // Refresh the proxyPlayers variable.
             getCount();
             // Obtain data from jedis
+            if(!jedis.isConnected()){
+                jedis.connect();
+            }
+            
             var servers_data = jedis.keys("servers:*");
 
             if (servers_data.isEmpty()) {
