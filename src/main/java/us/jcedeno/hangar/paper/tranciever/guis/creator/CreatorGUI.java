@@ -105,9 +105,9 @@ public class CreatorGUI extends RapidInv {
                     try {
                         System.out.println(request.toString());
                         var result = condor.post(condor.create_game_url, request);
-                        var condor_id = new Gson().fromJson(result, JsonObject.class).get("condor_id");
+                        var condor_id = new Gson().fromJson(result, JsonObject.class).get("condor_id").getAsString();
                         System.out.println(condor_id);
-                        instance.getCommunicatorManager().getJedis().set("servers:data:" + condor_id, request);
+                        instance.getCommunicatorManager().getJedis().set("data:" + condor_id, request);
                     } catch (Exception e1) {
                         clicker.sendMessage(ChatColor.RED + e1.getMessage() + ". Please report this to an admin!");
                         e1.printStackTrace();
