@@ -64,7 +64,7 @@ public class ScoreboardManager {
         fb.updateTitle(ChatColor.of("#A40A0A") + "" + ChatColor.BOLD + "NOOBSTERS");
         // Update the lines
         fb.updateLines(ChatColor.of("#82abba") + "User:",
-                " " + ChatColor.WHITE + player.getName() + "         \uEff3", "", ChatColor.of("#82abba") + "Role: ",
+                " " + ChatColor.WHITE + player.getName(), "", ChatColor.of("#82abba") + "Role: ",
                 ChatColor.WHITE + " " + ChatManager.colorize(getGroup(player)), "",
                 ChatColor.of("#82abba") + "Online Players: ",
                 " " + ChatColor.WHITE + instance.getCommunicatorManager().getProxyPlayers(), "",
