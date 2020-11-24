@@ -1,7 +1,6 @@
 package us.jcedeno.hangar.paper.tranciever.guis.creator.objects;
 
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
@@ -13,17 +12,15 @@ public enum GameType {
     UHC("UHC", TerrainGeneration.VANILLA,
             new ItemBuilder(Material.NETHERITE_HELMET).name(ChatColor.YELLOW + "UHC Games")
                     .lore(ChatColor.WHITE + "Click to switch gamemodes.").flags(ItemFlag.HIDE_ATTRIBUTES).build(),
-            new ItemStack(Material.ENCHANTED_GOLDEN_APPLE)),
+            new ItemStack(Material.GOLDEN_APPLE)),
     RUN("UHC Run", TerrainGeneration.RUN,
             new ItemBuilder(Material.DIAMOND_HELMET).name(ChatColor.YELLOW + "UHC Run Games")
                     .lore(ChatColor.WHITE + "Click to switch gamemodes.").flags(ItemFlag.HIDE_ATTRIBUTES).build(),
-            new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "UHC Run Match")
-                    .flags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS)
-                    .enchant(Enchantment.PROTECTION_ENVIRONMENTAL).build()),
+            new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "UHC Run Match").build()),
     MEETUP("UHC Meetup", TerrainGeneration.VANILLA,
             new ItemBuilder(Material.IRON_HELMET).name(ChatColor.YELLOW + "UHC Meetup Games")
                     .flags(ItemFlag.HIDE_ATTRIBUTES).lore(ChatColor.WHITE + "Click to switch gamemodes.").build(),
-            new ItemBuilder(Material.CROSSBOW).name(ChatColor.YELLOW + "UHC Meetup Match")
+            new ItemBuilder(Material.EMERALD).name(ChatColor.YELLOW + "UHC Meetup Match")
                     .flags(ItemFlag.HIDE_ATTRIBUTES).build());
 
     String name;
@@ -43,12 +40,14 @@ public enum GameType {
         return material;
     }
 
+    private static ChatColor gray = ChatColor.of("#82abba");
+    private static ChatColor white = ChatColor.WHITE;
+    private static ChatColor noobsters_red = ChatColor.of("#f49348");
+
     public ItemStack asServerDataIcon(UHCData data) {
         var item = serverDataIcon.clone();
         var meta = item.getItemMeta();
-        var gray = ChatColor.of("#8c7373");
-        var white = ChatColor.WHITE;
-        var noobsters_red = ChatColor.of("#c73838");
+
         meta.setLore(LoreBuilder.of(gray + "Config: " + white + data.getTeamSize() + " " + data.getScenarios(), "",
                 gray + "Game Time: " + white + timeConvert(data.getGameTime()),
                 gray + "Players Alive: " + white + data.getPlayersAlive(),

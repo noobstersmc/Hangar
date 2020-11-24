@@ -7,6 +7,8 @@ import java.util.Set;
 import com.google.gson.Gson;
 
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -36,6 +38,7 @@ public class BrowserWindow extends RapidInv {
     private @Getter @Setter GameType currentType;
     private @Getter Set<ServerData> lastKnownData;
     private Hangar instance;
+    private @Getter boolean privacy = false;
 
     public BrowserWindow(GameType type, RapidInv parentInventory, Hangar instance) {
         super(9 * 6, type.toString() + " Browser");
@@ -48,6 +51,9 @@ public class BrowserWindow extends RapidInv {
         setItem(slot_game_creator, new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
                 .name(ChatColor.of("#f49348") + "Game Creator").build(), (e) -> {
                     getCreator(getCurrentType(), instance).open(e.getWhoClicked());
+                    var clickedPlayer = (Player) e.getWhoClicked();
+                    clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ENTITY_SHULKER_AMBIENT,
+                            SoundCategory.VOICE, 1.0f, 1.0f);
                 });
         setItem(slot_home_button,
                 new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main Menu").build(), (e) -> {
@@ -61,30 +67,57 @@ public class BrowserWindow extends RapidInv {
                 });
         setItem(slot_private_games,
                 new ItemBuilder(Material.LODESTONE).name(ChatColor.of("#f49348") + "Private Games").build(),
-                (e) -> e.getWhoClicked().sendMessage("Private games are not ready yet!"));
+                (e) -> new BrowserWindow(this, instance, privacy).open(e.getWhoClicked(), instance));
 
         update(instance.getCommunicatorManager().getCachedData());
+    }
+
+    public BrowserWindow(RapidInv parentInventory, Hangar instance, boolean privacy) {
+        super(9 * 6, "Private Matches");
+        this.instance = instance;
+        this.privacy = true;
+        if (parentInventory != null)
+            setParentInventory(parentInventory);
+        setItem(slot_browser_icon, new ItemBuilder(Material.TURTLE_HELMET).name(ChatColor.YELLOW + "Private Games")
+                .flags(ItemFlag.HIDE_ATTRIBUTES).build(), (e) -> {
+                    // TODO: ON CLICK BEHAVIOR
+                });
+        setItem(slot_home_button,
+                new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main Menu").build(), (e) -> {
+                    var inv = getParentInventory();
+                    while (!(inv instanceof RecieverGUI)) {
+                        inv = inv.getParentInventory();
+                    }
+                    if (inv != null) {
+                        inv.open(e.getWhoClicked());
+                    }
+                });
+
+        updatePrivateGames(instance.getCommunicatorManager().getCachedData());
     }
 
     private void nextBrowser(InventoryClickEvent e, GameType type, Hangar instance) {
         new BrowserWindow(e.getClick() == ClickType.RIGHT ? type.getNextType() : type.getPreviousType(), this, instance)
                 .open(e.getWhoClicked(), instance);
+        var clickedPlayer = (Player) e.getWhoClicked();
+        clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE, SoundCategory.VOICE, 1.0f,
+                1.0f);
+
     }
 
-    public void update(Set<ServerData> updateData) {
-        // Just keep the data tha is related to our window.
-        var managedData = new HashSet<>(updateData);
-        managedData.removeIf(
-                all -> (all.getGameType() == null || all.getGameType() != getCurrentType() || all.isPrivate_game()));
+    public void updatePrivateGames(Set<ServerData> updateData) {
 
-        // TODO: SORT THE DATA TO BE DISPLAYED
-        // TODO: PAGINATION SYSTEM
+        var managedData = new HashSet<>(updateData);
+        managedData.removeIf(all -> all == null || all.getGameType() == null || !all.isPrivate_game());
 
         if (managedData.isEmpty()) {
             addresablesIndexes.forEach(slot -> removeItem(slot));
             var first_index = addresablesIndexes.get(0);
-            setItem(first_index, getCurrentType().getDefaultItem(),
-                    e -> e.getWhoClicked().sendMessage(ChatColor.RED + "No games running"));
+            setItem(first_index, GameType.UHC.getDefaultItem(), e -> {
+                var clickedPlayer = (Player) e.getWhoClicked();
+                clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,
+                        SoundCategory.VOICE, 1.0f, 1.0f);
+            });
 
         } else {
             var indexIterator = addresablesIndexes.iterator();
@@ -106,9 +139,50 @@ public class BrowserWindow extends RapidInv {
             }
 
         }
+    }
 
-        // Update the last known data
-        lastKnownData = updateData;
+    public void update(Set<ServerData> updateData) {
+        // Just keep the data tha is related to our window.
+        if (isPrivacy()) {
+            updatePrivateGames(updateData);
+            return;
+        }
+        var managedData = new HashSet<>(updateData);
+        managedData.removeIf(
+                all -> (all.getGameType() == null || all.getGameType() != getCurrentType() || all.isPrivate_game()));
+
+        // TODO: SORT THE DATA TO BE DISPLAYED
+        // TODO: PAGINATION SYSTEM
+
+        if (managedData.isEmpty()) {
+            addresablesIndexes.forEach(slot -> removeItem(slot));
+            var first_index = addresablesIndexes.get(0);
+            setItem(first_index, getCurrentType().getDefaultItem(), e -> {
+                var clickedPlayer = (Player) e.getWhoClicked();
+                clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,
+                        SoundCategory.VOICE, 1.0f, 1.0f);
+            });
+
+        } else {
+            var indexIterator = addresablesIndexes.iterator();
+            managedData.forEach(all -> {
+                if (indexIterator.hasNext()) {
+                    var index = indexIterator.next();
+                    var gson = new Gson();
+                    var data = gson.fromJson(all.getExtra_data().get("uhc-data").toString(), UHCData.class);
+                    updateItem(index, all.getGameType().asServerDataIcon(data), e -> {
+                        instance.getCommunicatorManager().sendToIP((Player) e.getWhoClicked(), all.getIpv4(),
+                                all.getGame_id().toString());
+                    });
+                } else {
+
+                }
+            });
+            while (indexIterator.hasNext()) {
+                removeItem(indexIterator.next());
+            }
+
+        }
     }
 
     public CreatorGUI getCreator(Hangar plugin) {

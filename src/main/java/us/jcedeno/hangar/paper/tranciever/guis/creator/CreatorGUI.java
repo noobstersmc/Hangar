@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -98,7 +100,11 @@ public class CreatorGUI extends RapidInv {
             var clicker = (Player) e.getWhoClicked();
             var request = gameCreator.createJsonRequest(clicker);
             if (request.equalsIgnoreCase("denied")) {
-                clicker.sendMessage(ChatColor.RED + "Condor is not available yet!");
+                clicker.sendMessage(
+                    ChatColor.WHITE + "You don't have "+ ChatColor.of("#43f9a1") 
+                    + "Community Host"+ ChatColor.WHITE + " rank!\n " + ChatColor.GREEN + "Upgrade your rank at " + ChatColor.GOLD + "noobsters.buycraft.net");
+                clicker.playSound(clicker.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,
+                        SoundCategory.VOICE, 1.0f, 1.0f);
             } else {
                 clicker.sendMessage(ChatColor.YELLOW + "Creating a server for you...");
                 Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
@@ -109,6 +115,8 @@ public class CreatorGUI extends RapidInv {
                         var condor_id = new Gson().fromJson(result, JsonObject.class).get("condor_id").getAsString();
                         clicker.sendMessage(ChatColor.GREEN + "Your server has been launched. Please wait "
                                 + ChatColor.WHITE + "[3m]");
+                        clicker.playSound(clicker.getLocation(), Sound.BLOCK_ANVIL_USE, SoundCategory.VOICE, 1.0f,
+                                1.0f);
                         instance.getCommunicatorManager().getJedis().set("data:" + condor_id, request);
                     } catch (Exception e1) {
                         clicker.sendMessage(ChatColor.RED + e1.getMessage() + ". Please report this to an admin!");
@@ -125,7 +133,7 @@ public class CreatorGUI extends RapidInv {
             while (!(inv instanceof RecieverGUI)) {
                 inv = inv.getParentInventory();
             }
-            if(inv != null){
+            if (inv != null) {
                 inv.open(e.getWhoClicked());
             }
         });
@@ -142,7 +150,7 @@ public class CreatorGUI extends RapidInv {
     public ItemStack SCENARIOS_ITEM = new ItemBuilder(Material.TOTEM_OF_UNDYING).name(ChatColor.YELLOW + "Scenarios")
             .lore(ChatColor.WHITE + " - Vanilla+").build();
     public ItemStack LAUNCH_ITEM = new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
-            .name(ChatColor.YELLOW + "Launch Server").lore(LoreBuilder
+            .name(ChatColor.of("#f49348") + "Launch Server").lore(LoreBuilder
                     .of(ChatColor.WHITE + "Click to launch the server", ChatColor.WHITE + "with the selected config."))
             .build();
     public ItemStack HOME_ITEM = new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main menu")

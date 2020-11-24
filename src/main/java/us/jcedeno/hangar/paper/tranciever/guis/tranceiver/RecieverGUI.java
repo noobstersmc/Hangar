@@ -3,11 +3,15 @@ package us.jcedeno.hangar.paper.tranciever.guis.tranceiver;
 import java.util.Set;
 
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.plugin.Plugin;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
@@ -25,14 +29,21 @@ public class RecieverGUI extends RapidInv {
         this.setItem(SlotPos.from(2, 1),
                 new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE).name(ChatColor.of("#f64658") + "" + ChatColor.BOLD + "UHC").build(), (e) -> {
                     new BrowserWindow(GameType.UHC, this, instance).open(e.getWhoClicked());
+                    var clickedPlayer = (Player) e.getWhoClicked();
+                    clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE, SoundCategory.VOICE, 1.0f, 1.0f);
                 });
         this.setItem(SlotPos.from(4, 1), new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "" + ChatColor.BOLD + "UHC Run")
                 .enchant(Enchantment.ARROW_DAMAGE).flags(ItemFlag.HIDE_ENCHANTS).build(), (e) -> {
                     new BrowserWindow(GameType.RUN, this, instance).open(e.getWhoClicked());
+                    var clickedPlayer = (Player) e.getWhoClicked();
+                    clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE, SoundCategory.VOICE, 1.0f, 1.0f);
                 });
-        this.setItem(SlotPos.from(6, 1), new ItemBuilder(Material.CROSSBOW).name(ChatColor.GREEN + "" + ChatColor.BOLD + "UHC Meetup").build(),
+        this.setItem(SlotPos.from(6, 1), new ItemBuilder(Material.EMERALD).name(ChatColor.GREEN + "" + ChatColor.BOLD + "UHC Meetup")
+                .enchant(Enchantment.ARROW_DAMAGE).flags(ItemFlag.HIDE_ENCHANTS).build(),
                 (e) -> {
                     new BrowserWindow(GameType.MEETUP, this, instance).open(e.getWhoClicked());
+                    var clickedPlayer = (Player) e.getWhoClicked();
+                    clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE, SoundCategory.VOICE, 1.0f, 1.0f);
                 });
 
         var head = getPlayerHead(player, ChatColor.of("#a1f448") + player.getName() + "'s profile");
@@ -40,7 +51,11 @@ public class RecieverGUI extends RapidInv {
 
         this.setItem(SlotPos.from(4, 3), head);
         update(instance.getCommunicatorManager().getCachedData());
+    }
 
+    @Override
+    public <T extends HumanEntity> void open(T player) {
+        super.open(player);
     }
 
     public void update(Set<ServerData> data) {

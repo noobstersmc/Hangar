@@ -32,7 +32,6 @@ import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.browser.BrowserWindow;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.TransferRequest;
-import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.UHCData;
 import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
 import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.uhc.GameData;
@@ -44,6 +43,9 @@ public class CommunicatorManager implements PluginMessageListener {
     private @Getter Integer proxyPlayers = 0;
     private @Getter Jedis jedis;
     private @Getter Set<ServerData> cachedData = new HashSet<>();
+    
+    HashMap<String, Long> cooldown = new HashMap<>();
+    private static Gson gson = new Gson();
 
     public CommunicatorManager(Hangar instance) {
         this.instance = instance;
@@ -60,8 +62,6 @@ public class CommunicatorManager implements PluginMessageListener {
             var servers_data = jedis.keys("servers:*");
 
             if (servers_data.isEmpty()) {
-                Bukkit.broadcast("data is empty", "debug");
-
                 cachedData.clear();
                 Bukkit.getOnlinePlayers().forEach(all -> {
                     var inv = all.getOpenInventory().getTopInventory();
@@ -125,7 +125,6 @@ public class CommunicatorManager implements PluginMessageListener {
         String game_id;
     }
 
-    HashMap<String, Long> cooldown = new HashMap<>();
 
     public void sendToGame(Player player, GameData game_data) {
         var value = cooldown.get(player.getName());
@@ -172,54 +171,6 @@ public class CommunicatorManager implements PluginMessageListener {
         });
     }
 
-    private static Gson gson = new Gson();
-
-    private UHCData getFromData(String data) {
-        var old_format = fromData(data);
-        return UHCData.fromOldFormat(old_format);
-    }
-
-    private GameData fromData(String data) {
-        return gson.fromJson(data, GameData.class);
-    }
-
-    private ItemStack getItemFromData(GameData game_data) {
-        String type = game_data.getGameType();
-        var item = new ItemStack(Material.STONE);
-        switch (type.toLowerCase()) {
-            case "uhc": {
-
-                item.setType(Material.ENCHANTED_GOLDEN_APPLE);
-                var meta = item.getItemMeta();
-                setMetaForUHC(meta, game_data);
-                item.setItemMeta(meta);
-                break;
-            }
-            case "uhc-run": {
-                item.setType(Material.GOLDEN_APPLE);
-                var meta = item.getItemMeta();
-
-                setMetaForUHC(meta, game_data);
-                item.setItemMeta(meta);
-                break;
-            }
-            default: {
-                // TODO: 404 Not found easter egg
-                /*
-                 * item.setType(Material.SPONGE); var meta = item.getItemMeta();
-                 * meta.setDisplayName("Unknown Server"); item.setItemMeta(meta);
-                 */
-                item.setType(Material.ENCHANTED_GOLDEN_APPLE);
-                var meta = item.getItemMeta();
-
-                setMetaForUHC(meta, game_data);
-                item.setItemMeta(meta);
-                break;
-            }
-        }
-
-        return item;
-    }
 
     public void setMetaForUHC(ItemMeta meta, GameData game_data) {
 
