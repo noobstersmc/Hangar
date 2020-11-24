@@ -1,16 +1,19 @@
 package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
 import com.destroystokyo.paper.Title;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameCreator;
@@ -35,7 +38,7 @@ public class CreatorGUI extends RapidInv {
     private TeamSizeGUI teamSizeGUI;
     private ScenarioSelectorGUI scenarioSelectorGUI;
 
-    public CreatorGUI(String title, RapidInv parentInventory, Plugin instance, GameType gameType) {
+    public CreatorGUI(String title, RapidInv parentInventory, Hangar instance, GameType gameType) {
         super(4 * 9, title);
         if (parentInventory != null) {
             setParentInventory(parentInventory);
@@ -89,8 +92,31 @@ public class CreatorGUI extends RapidInv {
             }
             scenarioSelectorGUI.open(player);
         });
+        
         setItem(slot_for_launch, LAUNCH_ITEM, e -> {
-            System.out.println(gameCreator.toString());
+            var clicker = (Player) e.getWhoClicked();
+            var request = gameCreator.createJsonRequest(clicker);
+            if (request.equalsIgnoreCase("denied")) {
+                clicker.sendMessage(ChatColor.RED + "Condor is not available yet!");
+            } else {
+                clicker.sendMessage("Creating a server: " + request);
+                Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+                    var condor = instance.getCondorManager();
+                    try {
+                        System.out.println(request.toString());
+                        var result = condor.post(condor.create_game_url, request);
+                        var condor_id = new Gson().fromJson(result, JsonObject.class).get("condor_id");
+                        System.out.println(condor_id);
+                        instance.getCommunicatorManager().getJedis().set("servers:data:" + condor_id, request);
+                    } catch (Exception e1) {
+                        clicker.sendMessage(ChatColor.RED + e1.getMessage() + ". Please report this to an admin!");
+                        e1.printStackTrace();
+                    }
+
+                });
+            }
+            clicker.closeInventory();
+
         });
         setItem(slot_for_home, HOME_ITEM, e -> {
             getParentInventory().open((Player) e.getWhoClicked());

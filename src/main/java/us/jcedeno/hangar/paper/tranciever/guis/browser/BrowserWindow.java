@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.plugin.Plugin;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
@@ -60,11 +59,11 @@ public class BrowserWindow extends RapidInv {
     }
 
     private void nextBrowser(InventoryClickEvent e) {
-        if(e.getClick() == ClickType.RIGHT){
+        if (e.getClick() == ClickType.RIGHT) {
             setCurrentType(getCurrentType().getNextType());
             getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
             update(lastKnownData);
-        }else{
+        } else {
             setCurrentType(getCurrentType().getPreviousType());
             getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
             update(lastKnownData);
@@ -74,11 +73,12 @@ public class BrowserWindow extends RapidInv {
     public void update(Set<ServerData> updateData) {
         // Just keep the data tha is related to our window.
         var managedData = new HashSet<>(updateData);
-        if(getCurrentType() == GameType.PRIVATE){
+        if (getCurrentType() == GameType.PRIVATE) {
             managedData.removeIf(all -> !all.isPrivate_game());
 
-        }else{
-            managedData.removeIf(all -> all.getGameType() != getCurrentType() || all.isPrivate_game());
+        } else {
+            managedData.removeIf(all -> (all.getGameType() != null && all.getGameType() != getCurrentType())
+                    || all.isPrivate_game());
         }
 
         if (managedData.isEmpty()) {
@@ -95,7 +95,8 @@ public class BrowserWindow extends RapidInv {
                     var gson = new Gson();
                     var data = gson.fromJson(all.getExtra_data().get("uhc-data").toString(), UHCData.class);
                     updateItem(index, all.getGameType().asServerDataIcon(data), e -> {
-                        instance.getCommunicatorManager().sendToIP((Player)e.getWhoClicked(), all.getIpv4(), all.getGame_id().toString());
+                        instance.getCommunicatorManager().sendToIP((Player) e.getWhoClicked(), all.getIpv4(),
+                                all.getGame_id().toString());
                     });
                 } else {
 
@@ -111,11 +112,11 @@ public class BrowserWindow extends RapidInv {
         lastKnownData = updateData;
     }
 
-    public CreatorGUI getCreator(Plugin plugin) {
+    public CreatorGUI getCreator(Hangar plugin) {
         return getCreator(GameType.UHC, plugin);
     }
 
-    public CreatorGUI getCreator(GameType type, Plugin plugin) {
+    public CreatorGUI getCreator(GameType type, Hangar plugin) {
         if (creatorGUI == null)
             creatorGUI = new CreatorGUI(type.toString() + " Creator", this, plugin, type);
 

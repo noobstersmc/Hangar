@@ -2,6 +2,7 @@ package us.jcedeno.hangar.paper.condor;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,8 +27,8 @@ public class CondorManager {
 
     private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    static OkHttpClient client = new OkHttpClient();
-    private String create_game_url = "http://condor.jcedeno.us:420/create-server";
+    static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(15, TimeUnit.SECONDS).writeTimeout(15, TimeUnit.SECONDS).build();
+    public String create_game_url = "http://condor.jcedeno.us:420/create-server";
 
     public String createMatch(String host, String gameType, String provider, String region, String seed)
             throws Exception {
@@ -37,7 +38,7 @@ public class CondorManager {
         return createServer;
     }
 
-    private String post(String url, String json) throws IOException {
+    public String post(String url, String json) throws IOException {
         RequestBody body = RequestBody.create(json, JSON);
         Request request = new Request.Builder().url(url).addHeader("auth", "Condor-Secreto")
                 .addHeader("Content-Type", "application/json").post(body).build();

@@ -1,5 +1,6 @@
 package us.jcedeno.hangar.paper.communicator;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -56,12 +57,30 @@ public class CommunicatorManager implements PluginMessageListener {
             getCount();
             // Obtain data from jedis
             Set<String> servers_data = jedis.keys("servers:*");
-            if (servers_data.isEmpty())
+            if (servers_data.isEmpty()) {
+                Bukkit.getOnlinePlayers().forEach(all -> {
+                    var inv = all.getOpenInventory().getTopInventory();
+                    if (inv.getHolder() instanceof RapidInv) {
+                        if (inv.getHolder() instanceof BrowserWindow) {
+                            var browser = (BrowserWindow) inv.getHolder();
+                            browser.update(Collections.emptySet());
+                        } else if (inv.getHolder() instanceof RecieverGUI) {
+                            var reciever = (RecieverGUI) inv.getHolder();
+                            reciever.update(Collections.emptySet());
+                        }
+                    }
+                });
                 return;
+            }
             var list_data = jedis.mget(servers_data.toArray(new String[] {}));
             var set = new HashSet<ServerData>();
+
             list_data.forEach(all -> {
-                set.add(gson.fromJson(all, ServerData.class));
+                try {
+                    set.add(gson.fromJson(all, ServerData.class));
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
             });
 
             Bukkit.getOnlinePlayers().forEach(all -> {

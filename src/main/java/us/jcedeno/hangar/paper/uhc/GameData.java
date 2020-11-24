@@ -1,7 +1,5 @@
 package us.jcedeno.hangar.paper.uhc;
 
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

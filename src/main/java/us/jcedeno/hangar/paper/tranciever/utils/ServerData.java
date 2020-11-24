@@ -20,8 +20,17 @@ public class ServerData {
     HashMap<String, Object> extra_data;
 
     public GameType getGameType() {
-        return GameType.valueOf(extra_data.get("game-type").toString());
+        if (extra_data != null) {
+            var data = extra_data.get("game-type");
+            if (data != null) {
+                var type = GameType.valueOf(data.toString());
+                if (type != null)
+                    return type;
+            }
+        }
+        return GameType.PRIVATE;
     }
+
     public UHCData getUhcData() {
         return gson.fromJson(extra_data.get("uhc-data").toString(), UHCData.class);
     }

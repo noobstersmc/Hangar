@@ -60,25 +60,30 @@ public class RecieverGUI extends RapidInv {
         
 
         for (ServerData serverData : data) {
-            var uhcData = serverData.getUhcData();
-            switch (serverData.getGameType()) {
-                case UHC:
-                    uhc_count += uhcData.getPlayersOnline();
-                    uhc_server++;
-
-                    break;
-                case RUN:
-                    run_count += uhcData.getPlayersOnline();
-                    run_server++;
-                    break;
-                case MEETUP:
-                    meetup_count += uhcData.getPlayersOnline();
-                    meetup_server++;
-
-                    break;
-
-                default:
-                    break;
+            try {
+                var uhcData = serverData.getUhcData();
+                switch (serverData.getGameType()) {
+                    case UHC:
+                        uhc_count += uhcData.getPlayersOnline();
+                        uhc_server++;
+    
+                        break;
+                    case RUN:
+                        run_count += uhcData.getPlayersOnline();
+                        run_server++;
+                        break;
+                    case MEETUP:
+                        meetup_count += uhcData.getPlayersOnline();
+                        meetup_server++;
+    
+                        break;
+    
+                    default:
+                        break;
+                }
+                
+            } catch (Exception e) {
+                //TODO: handle exception
             }
 
         }
