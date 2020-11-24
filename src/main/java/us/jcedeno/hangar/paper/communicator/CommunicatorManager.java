@@ -2,6 +2,7 @@ package us.jcedeno.hangar.paper.communicator;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -78,9 +79,8 @@ public class CommunicatorManager implements PluginMessageListener {
                 });
                 return;
             }
-            var filtered_data = servers_data.stream().collect(Collectors.toList());
+            var filtered_data = servers_data.stream().filter(Objects::nonNull).collect(Collectors.toList());
             if (!filtered_data.isEmpty()) {
-                
                 var list_data = jedis.mget(filtered_data.toArray(new String[] {}));
                 var set = new HashSet<ServerData>();
 
