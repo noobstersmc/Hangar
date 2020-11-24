@@ -21,6 +21,7 @@ import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.TerrainGeneration;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.subgui.ScenarioSelectorGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.subgui.TeamSizeGUI;
+import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
 import us.jcedeno.hangar.paper.tranciever.utils.GeneralizedInputTask;
 import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
@@ -92,21 +93,22 @@ public class CreatorGUI extends RapidInv {
             }
             scenarioSelectorGUI.open(player);
         });
-        
+
         setItem(slot_for_launch, LAUNCH_ITEM, e -> {
             var clicker = (Player) e.getWhoClicked();
             var request = gameCreator.createJsonRequest(clicker);
             if (request.equalsIgnoreCase("denied")) {
                 clicker.sendMessage(ChatColor.RED + "Condor is not available yet!");
             } else {
-                clicker.sendMessage("Creating a server: " + request);
+                clicker.sendMessage(ChatColor.YELLOW + "Creating a server for you...");
                 Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
                     var condor = instance.getCondorManager();
                     try {
                         System.out.println(request.toString());
                         var result = condor.post(condor.create_game_url, request);
                         var condor_id = new Gson().fromJson(result, JsonObject.class).get("condor_id").getAsString();
-                        System.out.println(condor_id);
+                        clicker.sendMessage(ChatColor.GREEN + "Your server has been launched. Please wait "
+                                + ChatColor.WHITE + "[3m]");
                         instance.getCommunicatorManager().getJedis().set("data:" + condor_id, request);
                     } catch (Exception e1) {
                         clicker.sendMessage(ChatColor.RED + e1.getMessage() + ". Please report this to an admin!");
@@ -119,14 +121,19 @@ public class CreatorGUI extends RapidInv {
 
         });
         setItem(slot_for_home, HOME_ITEM, e -> {
-            getParentInventory().open((Player) e.getWhoClicked());
+            var inv = getParentInventory();
+            while (!(inv instanceof RecieverGUI)) {
+                inv = inv.getParentInventory();
+            }
+            if(inv != null){
+                inv.open(e.getWhoClicked());
+            }
         });
     }
 
     // Boilerplate
-    private ItemStack VANILLA_GEN = new ItemBuilder(Material.GRASS_BLOCK).name(ChatColor.YELLOW + "Vanilla Generation")
-            .build();
-    private ItemStack RUN_GEN = new ItemBuilder(Material.ANCIENT_DEBRIS).name(ChatColor.YELLOW + "Run Generation")
+    private ItemStack VANILLA_GEN = new ItemBuilder(Material.GRASS_BLOCK).name(ChatColor.RED + "UHC Game").build();
+    private ItemStack RUN_GEN = new ItemBuilder(Material.ANCIENT_DEBRIS).name(ChatColor.YELLOW + "UHC Run Game")
             .build();
     public ItemStack SEED_ITEM = new ItemBuilder(Material.WHEAT_SEEDS).name(ChatColor.YELLOW + "Seed:")
             .lore(ChatColor.WHITE + "random").build();
@@ -134,8 +141,11 @@ public class CreatorGUI extends RapidInv {
             .name(ChatColor.YELLOW + "Team Size: " + ChatColor.WHITE + "FFA").build();
     public ItemStack SCENARIOS_ITEM = new ItemBuilder(Material.TOTEM_OF_UNDYING).name(ChatColor.YELLOW + "Scenarios")
             .lore(ChatColor.WHITE + " - Vanilla+").build();
-    public ItemStack LAUNCH_ITEM = new ItemBuilder(Material.IRON_PICKAXE).name(ChatColor.GOLD + "Create!")
-            .flags(ItemFlag.HIDE_ATTRIBUTES).build();
-    public ItemStack HOME_ITEM = new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.WHITE + "Main menu").build();
+    public ItemStack LAUNCH_ITEM = new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
+            .name(ChatColor.YELLOW + "Launch Server").lore(LoreBuilder
+                    .of(ChatColor.WHITE + "Click to launch the server", ChatColor.WHITE + "with the selected config."))
+            .build();
+    public ItemStack HOME_ITEM = new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main menu")
+            .build();
 
 }

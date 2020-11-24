@@ -1,11 +1,11 @@
 package us.jcedeno.hangar.paper.communicator;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -43,6 +43,7 @@ public class CommunicatorManager implements PluginMessageListener {
     private @Getter Cache<String, GameData> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).build();
     private @Getter Integer proxyPlayers = 0;
     private @Getter Jedis jedis;
+    private @Getter Set<ServerData> cachedData = new HashSet<>();
 
     public CommunicatorManager(Hangar instance) {
         this.instance = instance;
@@ -56,45 +57,61 @@ public class CommunicatorManager implements PluginMessageListener {
             // Refresh the proxyPlayers variable.
             getCount();
             // Obtain data from jedis
-            Set<String> servers_data = jedis.keys("servers:*");
+            var servers_data = jedis.keys("servers:*");
+
             if (servers_data.isEmpty()) {
+                Bukkit.broadcast("data is empty", "debug");
+
+                cachedData.clear();
                 Bukkit.getOnlinePlayers().forEach(all -> {
                     var inv = all.getOpenInventory().getTopInventory();
+
                     if (inv.getHolder() instanceof RapidInv) {
                         if (inv.getHolder() instanceof BrowserWindow) {
                             var browser = (BrowserWindow) inv.getHolder();
-                            browser.update(Collections.emptySet());
+                            browser.update(cachedData);
                         } else if (inv.getHolder() instanceof RecieverGUI) {
                             var reciever = (RecieverGUI) inv.getHolder();
-                            reciever.update(Collections.emptySet());
+                            reciever.update(cachedData);
                         }
                     }
                 });
                 return;
             }
-            var list_data = jedis.mget(servers_data.toArray(new String[] {}));
-            var set = new HashSet<ServerData>();
+            var filtered_data = servers_data.stream().collect(Collectors.toList());
+            if (!filtered_data.isEmpty()) {
+                
+                var list_data = jedis.mget(filtered_data.toArray(new String[] {}));
+                var set = new HashSet<ServerData>();
 
-            list_data.forEach(all -> {
-                try {
-                    set.add(gson.fromJson(all, ServerData.class));
-                } catch (Exception e) {
-                    //e.printStackTrace();
-                }
-            });
-
-            Bukkit.getOnlinePlayers().forEach(all -> {
-                var inv = all.getOpenInventory().getTopInventory();
-                if (inv.getHolder() instanceof RapidInv) {
-                    if (inv.getHolder() instanceof BrowserWindow) {
-                        var browser = (BrowserWindow) inv.getHolder();
-                        browser.update(set);
-                    } else if (inv.getHolder() instanceof RecieverGUI) {
-                        var reciever = (RecieverGUI) inv.getHolder();
-                        reciever.update(set);
+                list_data.forEach(all -> {
+                    try {
+                        set.add(gson.fromJson(all, ServerData.class));
+                    } catch (Exception e) {
+                        // e.printStackTrace();
                     }
-                }
-            });
+                });
+                cachedData.clear();
+                cachedData.addAll(set);
+                
+
+                Bukkit.getOnlinePlayers().forEach(all -> {
+                    var inv = all.getOpenInventory().getTopInventory();
+                    if (inv.getHolder() instanceof RapidInv) {
+                        if (inv.getHolder() instanceof BrowserWindow) {
+                            var browser = (BrowserWindow) inv.getHolder();
+                            browser.update(set);
+                        } else if (inv.getHolder() instanceof RecieverGUI) {
+                            var reciever = (RecieverGUI) inv.getHolder();
+                            reciever.update(set);
+                        }
+                    }
+                });
+
+            }else{
+                
+            Bukkit.broadcast("empty", "debug");
+            }
 
         }, 25L, 19L);
 
@@ -207,9 +224,9 @@ public class CommunicatorManager implements PluginMessageListener {
     public void setMetaForUHC(ItemMeta meta, GameData game_data) {
 
         final var stage = game_data.getGameStage();
-        final var titleColor = ChatColor.of("#8c7373");
+        final var titleColor = ChatColor.of("#82abba");
         var name = (game_data.getHostname() != null ? game_data.getHostname() + "'s " : "") + "UHC";
-        meta.setDisplayName(ChatColor.of("#c73838") + "" + ChatColor.BOLD + name);
+        meta.setDisplayName(ChatColor.of("#f64658") + "" + ChatColor.BOLD + name);
 
         switch (stage.toLowerCase()) {
             case "lobby":

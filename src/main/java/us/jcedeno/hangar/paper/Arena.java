@@ -212,16 +212,17 @@ public class Arena extends BaseCommand implements Listener {
 
             try {
                 for (var o : letras) {
-                    builder.append(ChatColor.of(arrayOfColor.get(i + j % (arrayOfColor.size()-2)).brighter()) + "" + ChatColor.BOLD + "");
+                    builder.append(ChatColor.of(arrayOfColor.get(i + j % (arrayOfColor.size() - 2)).brighter()) + ""
+                            + ChatColor.BOLD + "");
                     builder.append(o);
                     j++;
                 }
-                Bukkit.getScheduler().runTaskLaterAsynchronously(instance, ()->{
+                Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> {
                     s.updateTitle(builder.toString());
-                }, 1+ i);
-                
+                }, 1 + i);
+
             } catch (Exception e) {
-                //TODO: handle exception
+                // TODO: handle exception
             }
         }
 
@@ -287,7 +288,7 @@ public class Arena extends BaseCommand implements Listener {
     private void restoreArenaPlayer(final Player player, final ArenaPlayerData data) {
         if (player != null && player.isOnline()) {
             data.setLastDamageTime(System.currentTimeMillis());
-            if (data.getPosition() != null) {
+            if (data.getPosition() != null && data.getPosition().distance(player.getLocation()) > 5) {
                 player.teleport(data.getPosition());
             }
             var invContent = data.getPlayerInventory()[1];
@@ -804,7 +805,7 @@ public class Arena extends BaseCommand implements Listener {
         ItemStack item = e.getCurrentItem();
         if (inv instanceof EnchantingInventory) {
 
-            if (item.getType().equals(lapis.getType())) {
+            if (item != null && item.getType().equals(lapis.getType())) {
                 e.setCancelled(true);
             } else {
                 e.getInventory().setItem(1, lapis);

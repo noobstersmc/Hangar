@@ -21,6 +21,7 @@ import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.UHCData;
+import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
 import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
@@ -43,49 +44,47 @@ public class BrowserWindow extends RapidInv {
             setParentInventory(parentInventory);
         // Set the type
         setCurrentType(type);
-        setItem(slot_browser_icon, type.getBrowserIcon(), (e) -> nextBrowser(e));
+        setItem(slot_browser_icon, type.getBrowserIcon(), (e) -> nextBrowser(e, type, instance));
         setItem(slot_game_creator, new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
-                .name(ChatColor.GOLD + "Game Creator").build(), (e) -> {
+                .name(ChatColor.of("#f49348") + "Game Creator").build(), (e) -> {
                     getCreator(getCurrentType(), instance).open(e.getWhoClicked());
                 });
-        setItem(slot_home_button, new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.GOLD + "Home").build(), (e) -> {
-            if (getParentInventory() != null) {
-                getParentInventory().open(e.getWhoClicked());
-            }
-        });
-        setItem(slot_private_games, new ItemBuilder(Material.LODESTONE).name(ChatColor.GOLD + "Private Games").build(),
+        setItem(slot_home_button,
+                new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main Menu").build(), (e) -> {
+                    var inv = getParentInventory();
+                    while (!(inv instanceof RecieverGUI)) {
+                        inv = inv.getParentInventory();
+                    }
+                    if (inv != null) {
+                        inv.open(e.getWhoClicked());
+                    }
+                });
+        setItem(slot_private_games,
+                new ItemBuilder(Material.LODESTONE).name(ChatColor.of("#f49348") + "Private Games").build(),
                 (e) -> e.getWhoClicked().sendMessage("Private games are not ready yet!"));
 
+        update(instance.getCommunicatorManager().getCachedData());
     }
 
-    private void nextBrowser(InventoryClickEvent e) {
-        if (e.getClick() == ClickType.RIGHT) {
-            setCurrentType(getCurrentType().getNextType());
-            getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
-            update(lastKnownData);
-        } else {
-            setCurrentType(getCurrentType().getPreviousType());
-            getInventory().setItem(slot_browser_icon, currentType.getBrowserIcon());
-            update(lastKnownData);
-        }
+    private void nextBrowser(InventoryClickEvent e, GameType type, Hangar instance) {
+        new BrowserWindow(e.getClick() == ClickType.RIGHT ? type.getNextType() : type.getPreviousType(), this, instance)
+                .open(e.getWhoClicked(), instance);
     }
 
     public void update(Set<ServerData> updateData) {
         // Just keep the data tha is related to our window.
         var managedData = new HashSet<>(updateData);
-        if (getCurrentType() == GameType.PRIVATE) {
-            managedData.removeIf(all -> !all.isPrivate_game());
+        managedData.removeIf(
+                all -> (all.getGameType() == null || all.getGameType() != getCurrentType() || all.isPrivate_game()));
 
-        } else {
-            managedData.removeIf(all -> (all.getGameType() != null && all.getGameType() != getCurrentType())
-                    || all.isPrivate_game());
-        }
+        // TODO: SORT THE DATA TO BE DISPLAYED
+        // TODO: PAGINATION SYSTEM
 
         if (managedData.isEmpty()) {
             addresablesIndexes.forEach(slot -> removeItem(slot));
             var first_index = addresablesIndexes.get(0);
             setItem(first_index, getCurrentType().getDefaultItem(),
-                    e -> e.getWhoClicked().sendMessage("No games running"));
+                    e -> e.getWhoClicked().sendMessage(ChatColor.RED + "No games running"));
 
         } else {
             var indexIterator = addresablesIndexes.iterator();

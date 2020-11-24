@@ -12,24 +12,19 @@ import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 public enum GameType {
     UHC("UHC", TerrainGeneration.VANILLA,
             new ItemBuilder(Material.NETHERITE_HELMET).name(ChatColor.YELLOW + "UHC Games")
-                    .lore(ChatColor.WHITE + "Click to change gamemodes.").flags(ItemFlag.HIDE_ATTRIBUTES).build(),
+                    .lore(ChatColor.WHITE + "Click to switch gamemodes.").flags(ItemFlag.HIDE_ATTRIBUTES).build(),
             new ItemStack(Material.ENCHANTED_GOLDEN_APPLE)),
-    RUN("UHC-RUN", TerrainGeneration.RUN,
+    RUN("UHC Run", TerrainGeneration.RUN,
             new ItemBuilder(Material.DIAMOND_HELMET).name(ChatColor.YELLOW + "UHC Run Games")
-                    .lore(ChatColor.WHITE + "Click to change gamemodes.").flags(ItemFlag.HIDE_ATTRIBUTES).build(),
+                    .lore(ChatColor.WHITE + "Click to switch gamemodes.").flags(ItemFlag.HIDE_ATTRIBUTES).build(),
             new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "UHC Run Match")
                     .flags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS)
                     .enchant(Enchantment.PROTECTION_ENVIRONMENTAL).build()),
-    MEETUP("UHC-Meetup", TerrainGeneration.VANILLA,
+    MEETUP("UHC Meetup", TerrainGeneration.VANILLA,
             new ItemBuilder(Material.IRON_HELMET).name(ChatColor.YELLOW + "UHC Meetup Games")
-                    .flags(ItemFlag.HIDE_ATTRIBUTES).lore(ChatColor.WHITE + "Click to change gamemodes.").build(),
+                    .flags(ItemFlag.HIDE_ATTRIBUTES).lore(ChatColor.WHITE + "Click to switch gamemodes.").build(),
             new ItemBuilder(Material.CROSSBOW).name(ChatColor.YELLOW + "UHC Meetup Match")
-                    .flags(ItemFlag.HIDE_ATTRIBUTES).build()),
-    PRIVATE("PRIVATE", TerrainGeneration.VANILLA,
-            new ItemBuilder(Material.IRON_HELMET).name(ChatColor.YELLOW + "Private UHC Games")
-                    .flags(ItemFlag.HIDE_ATTRIBUTES).lore(ChatColor.WHITE + "Click to change gamemodes.").build(),
-            new ItemBuilder(Material.CROSSBOW).name(ChatColor.YELLOW + "UHC Private").flags(ItemFlag.HIDE_ATTRIBUTES)
-                    .build());
+                    .flags(ItemFlag.HIDE_ATTRIBUTES).build());
 
     String name;
     TerrainGeneration defaulTerrainGeneration;
@@ -88,8 +83,10 @@ public enum GameType {
     public GameType getNextType() {
         return values()[(this.ordinal() >= values().length - 1 ? 0 : this.ordinal() + 1)];
     }
+
     public GameType getPreviousType() {
-        return values()[(this.ordinal() >= 0 ? values().length - 1 : this.ordinal() - 1)];
+        // TODO:MAKE IT ACTUALLY GO BACK
+        return getNextType();
     }
 
     public GameCreator getDefaulGameCreator() {

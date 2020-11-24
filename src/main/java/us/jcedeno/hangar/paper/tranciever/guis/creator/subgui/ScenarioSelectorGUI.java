@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
@@ -45,23 +44,15 @@ public class ScenarioSelectorGUI extends RapidInv {
 
             });
         }
-        setItem(SlotPos.from(3, 5),
+        setItem(SlotPos.from(4, 5),
                 new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.YELLOW + "Go back")
-                        .lore(LoreBuilder.of(ChatColor.WHITE + "Right click to save and return",
-                                ChatColor.WHITE + "Left click to return"))
+                        .lore(LoreBuilder.of(ChatColor.WHITE + "Click to return."))
                         .build(),
                 e -> {
                     creator.getInventory().getItem(CreatorGUI.slot_for_scenarios)
                             .setLore(getScenariosLore(creator.getGameCreator()));
                     creator.open(player);
                 });
-        setItem(SlotPos.from(5, 5),
-                new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
-                        .name(ChatColor.YELLOW + "Launch Server")
-                        .lore(LoreBuilder.of(ChatColor.WHITE + "Click to launch the server",
-                                ChatColor.WHITE + "with the selected config."))
-                        .build());
-
     }
 
     private List<String> getScenariosLore(GameCreator creator) {

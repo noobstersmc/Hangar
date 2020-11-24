@@ -28,7 +28,7 @@ public class ServerData {
                     return type;
             }
         }
-        return GameType.PRIVATE;
+        return null;
     }
 
     public UHCData getUhcData() {

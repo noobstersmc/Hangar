@@ -9,15 +9,18 @@ import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
 
 public enum ScenariosEnum {
-    CUTCLEAN("Cutclean", Material.IRON_INGOT), TIMEBOMB("Timebomb", Material.TNT),
-    TIMBER("Timber", Material.DIAMOND_AXE), NO_CLEAN("No Clean", Material.NAME_TAG),
-    BACKPACK("Backpack", Material.ENDER_CHEST), NO_FALL("No Fall", Material.DIAMOND_BOOTS),
-    FIRELESS("Fireless", Material.FIRE_CHARGE), BLOOD_DIAMONDS("Blood Diamonds", Material.DIAMOND),
-    BOWLESS("Bowless", Material.BOW), HASTEYBOYS("Hasteyboys", Material.GOLDEN_PICKAXE),
-    GONE_FISHING("Gone Fishing", Material.FISHING_ROD), INFINITE_ENCHANTER("Infinite Enchanter", Material.BOOKSHELF),
-    LIMITS("Limits", Material.BARRIER), FLOWER_POWER("Flower Power", Material.WITHER_ROSE),
-    SWITCHEROO("Switcheroo", Material.ENDER_EYE);
-
+    CUTCLEAN("Cutclean", Material.IRON_INGOT), TIMEBOMB("TimeBomb", Material.TNT),
+    TIMBER("Timber", Material.OAK_LOG), NO_CLEAN("No Clean", Material.NAME_TAG),
+    BACKPACK("Backpack", Material.ENDER_CHEST), NO_FALL("NoFall", Material.DIAMOND_BOOTS),
+    FIRELESS("Fireless", Material.FIRE_CHARGE), GOTOHELL("Go to Hell", Material.WARPED_NYLIUM),
+    BOWLESS("Bowless", Material.BOW), HASTEYBOYS("HasteyBoys", Material.GOLDEN_PICKAXE),
+    NINESLOTS("NineSlots", Material.BARRIER), INFINITE_ENCHANTER("Infinite Enchanter", Material.BOOKSHELF),
+    SWITCHEROO("Switcheroo", Material.ENDER_EYE), FLOWER_POWER("FlowerPower", Material.WITHER_ROSE),
+    ADVANCEMENTHUNTER("Advancement Hunter", Material.CRAFTING_TABLE), FASTSMELTING("FastSmelting", Material.FURNACE), 
+    BLOODENCHANTS("BloodEnchants", Material.ENCHANTING_TABLE), SKYHIGH("SkyHigh", Material.PHANTOM_MEMBRANE),
+    GOLDENRETREIVER("GoldenRetreiver", Material.GOLDEN_APPLE), MONSTERSINC("MonstersInc", Material.CRIMSON_DOOR), 
+    SECRET("UHC Vandálico", Material.EMERALD_BLOCK);
+    
     String name;
     Material material;
 
@@ -32,7 +35,7 @@ public enum ScenariosEnum {
     }
 
     public ItemStack asItem(boolean enchanted) {
-        var item = new ItemBuilder(material).name(ChatColor.GOLD + name).flags(ItemFlag.HIDE_ATTRIBUTES,
+        var item = new ItemBuilder(material).name(ChatColor.of("#cd8bf8") + name).flags(ItemFlag.HIDE_ATTRIBUTES,
                 ItemFlag.HIDE_ENCHANTS);
         var stack = item.build();
 
