@@ -44,7 +44,7 @@ public class CommunicatorManager implements PluginMessageListener {
     private @Getter Integer proxyPlayers = 0;
     private @Getter Jedis jedis;
     private @Getter Set<ServerData> cachedData = new HashSet<>();
-    
+
     HashMap<String, Long> cooldown = new HashMap<>();
     private static Gson gson = new Gson();
 
@@ -60,10 +60,10 @@ public class CommunicatorManager implements PluginMessageListener {
             // Refresh the proxyPlayers variable.
             getCount();
             // Obtain data from jedis
-            if(!jedis.isConnected()){
+            if (!jedis.isConnected()) {
                 jedis.connect();
             }
-            
+
             var servers_data = jedis.keys("servers:*");
 
             if (servers_data.isEmpty()) {
@@ -85,36 +85,41 @@ public class CommunicatorManager implements PluginMessageListener {
             }
             var filtered_data = servers_data.stream().filter(Objects::nonNull).collect(Collectors.toList());
             if (!filtered_data.isEmpty()) {
-                var list_data = jedis.mget(filtered_data.toArray(new String[] {}));
-                var set = new HashSet<ServerData>();
+                try {
+                    var list_data = jedis.mget(filtered_data.toArray(new String[] {}));
+                    var set = new HashSet<ServerData>();
 
-                list_data.forEach(all -> {
-                    try {
-                        set.add(gson.fromJson(all, ServerData.class));
-                    } catch (Exception e) {
-                        // e.printStackTrace();
-                    }
-                });
-                cachedData.clear();
-                cachedData.addAll(set);
-                
-
-                Bukkit.getOnlinePlayers().forEach(all -> {
-                    var inv = all.getOpenInventory().getTopInventory();
-                    if (inv.getHolder() instanceof RapidInv) {
-                        if (inv.getHolder() instanceof BrowserWindow) {
-                            var browser = (BrowserWindow) inv.getHolder();
-                            browser.update(set);
-                        } else if (inv.getHolder() instanceof RecieverGUI) {
-                            var reciever = (RecieverGUI) inv.getHolder();
-                            reciever.update(set);
+                    list_data.forEach(all -> {
+                        try {
+                            set.add(gson.fromJson(all, ServerData.class));
+                        } catch (Exception e) {
+                            // e.printStackTrace();
                         }
-                    }
-                });
+                    });
+                    cachedData.clear();
+                    cachedData.addAll(set);
 
-            }else{
-                
-            Bukkit.broadcast("empty", "debug");
+                    Bukkit.getOnlinePlayers().forEach(all -> {
+                        var inv = all.getOpenInventory().getTopInventory();
+                        if (inv.getHolder() instanceof RapidInv) {
+                            if (inv.getHolder() instanceof BrowserWindow) {
+                                var browser = (BrowserWindow) inv.getHolder();
+                                browser.update(set);
+                            } else if (inv.getHolder() instanceof RecieverGUI) {
+                                var reciever = (RecieverGUI) inv.getHolder();
+                                reciever.update(set);
+                            }
+                        }
+                    });
+
+                } catch (Exception e) {
+                    Bukkit.broadcast(ChatColor.RED + e.getMessage(), "hangar.debug");
+                    e.printStackTrace();
+                }
+
+            } else {
+                Bukkit.broadcast(ChatColor.RED + "Hangar is not receiving any data. Check connection status.",
+                        "hangar.debug");
             }
 
         }, 25L, 19L);
@@ -128,7 +133,6 @@ public class CommunicatorManager implements PluginMessageListener {
         String ip;
         String game_id;
     }
-
 
     public void sendToGame(Player player, GameData game_data) {
         var value = cooldown.get(player.getName());
@@ -174,7 +178,6 @@ public class CommunicatorManager implements PluginMessageListener {
             }
         });
     }
-
 
     public void setMetaForUHC(ItemMeta meta, GameData game_data) {
 

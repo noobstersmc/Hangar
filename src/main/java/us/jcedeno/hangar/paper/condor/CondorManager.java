@@ -27,7 +27,7 @@ public class CondorManager {
 
     private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(15, TimeUnit.SECONDS).writeTimeout(15, TimeUnit.SECONDS).build();
+    static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).writeTimeout(30, TimeUnit.SECONDS).build();
     public String create_game_url = "http://condor.jcedeno.us:420/create-server";
 
     public String createMatch(String host, String gameType, String provider, String region, String seed)

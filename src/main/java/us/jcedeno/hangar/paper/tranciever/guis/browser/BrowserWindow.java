@@ -102,7 +102,7 @@ public class BrowserWindow extends RapidInv {
         var clickedPlayer = (Player) e.getWhoClicked();
         clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE, SoundCategory.VOICE, 1.0f,
                 1.0f);
-
+ 
     }
 
     public void updatePrivateGames(Set<ServerData> updateData) {
