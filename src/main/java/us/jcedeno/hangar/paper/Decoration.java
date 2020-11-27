@@ -57,14 +57,14 @@ public class Decoration implements Listener {
             if(random.nextBoolean()) e.setCancelled(true);
         }
     }
-
+    /*
     @EventHandler
     public void onOpenTrapdoor(PlayerInteractEvent e){
         if (!e.getPlayer().hasPermission("lobby.edit") && 
             e.getClickedBlock().getType().toString().contains("TRAPDOOR")) {
             e.setCancelled(true);
         }
-    }
+    }*/
 
 
 }
