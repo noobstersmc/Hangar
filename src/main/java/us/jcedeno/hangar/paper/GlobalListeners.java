@@ -33,11 +33,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import fr.mrmicky.fastinv.ItemBuilder;
@@ -52,13 +54,15 @@ public class GlobalListeners implements Listener {
     private ScoreboardManager scoreboardManager;
     private static @Getter String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
     private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena";
-    private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0,
-            2.0, 0);
+    private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0.5,
+            2.0, 0.5);
 
     public GlobalListeners(Hangar instance) {
         this.instance = instance;
         this.scoreboardManager = instance.getScoreboardManager();
         Bukkit.getPluginManager().registerEvents(this, this.instance);
+        spawnLoc.setYaw(90);
+        spawnLoc.setPitch(0);
     }
 
     @EventHandler
@@ -83,6 +87,7 @@ public class GlobalListeners implements Listener {
         // Send the player a scoreboard
         scoreboardManager.sendInitialBoard(player);
     }
+
 
     @EventHandler
     public void onPlayersChange(ProxyChangeInPlayersEvent e) {

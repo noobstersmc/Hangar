@@ -187,16 +187,6 @@ public class CommunicatorManager implements PluginMessageListener {
         meta.setDisplayName(ChatColor.of("#f64658") + "" + ChatColor.BOLD + name);
 
         switch (stage.toLowerCase()) {
-            case "lobby":
-            case "scatter": {
-                meta.setLore(LoreBuilder.of(
-                        titleColor + "Config: " + ChatColor.WHITE + game_data.getGameType() + " "
-                                + game_data.getScenarios(),
-                        "", titleColor + "Players: " + ChatColor.WHITE + game_data.getPlayersOnline() + "/"
-                                + game_data.getUhcslots()));
-
-                break;
-            }
             case "ingame": {
                 meta.setLore(LoreBuilder.of(
                         titleColor + "Config: " + ChatColor.WHITE + game_data.getGameType() + " "
@@ -204,6 +194,15 @@ public class CommunicatorManager implements PluginMessageListener {
                         "", titleColor + "Game Time: " + ChatColor.WHITE + timeConvert(game_data.getGameTime()),
                         titleColor + "Players Alive: " + ChatColor.WHITE + game_data.getPlayersAlive(),
                         titleColor + "Spectators: " + ChatColor.WHITE + game_data.getSpectators()));
+
+                break;
+            }
+            default: {
+                meta.setLore(LoreBuilder.of(
+                        titleColor + "Config: " + ChatColor.WHITE + game_data.getGameType() + " "
+                                + game_data.getScenarios(),
+                        "", titleColor + "Players: " + ChatColor.WHITE + game_data.getPlayersOnline() + "/"
+                                + game_data.getUhcslots()));
 
                 break;
             }

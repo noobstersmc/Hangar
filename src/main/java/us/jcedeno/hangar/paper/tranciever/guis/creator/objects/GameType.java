@@ -40,20 +40,41 @@ public enum GameType {
         return material;
     }
 
-    private static ChatColor gray = ChatColor.of("#82abba");
+    private static ChatColor colorData = ChatColor.of("#82abba");
     private static ChatColor white = ChatColor.WHITE;
     private static ChatColor noobsters_red = ChatColor.of("#f49348");
 
     public ItemStack asServerDataIcon(UHCData data) {
         var item = serverDataIcon.clone();
         var meta = item.getItemMeta();
+        var scenarioSize = data.getScenarios();
+        final var stage = data.getGameStage();
+        switch (stage.toLowerCase()) {
+            case "ingame": {
+                meta.setLore(LoreBuilder.of(colorData + "Config: " + white + data.getTeamSize() + " " + data.getScenarios(), "",
+                colorData + "Game Time: " + white + timeConvert(data.getGameTime()),
+                colorData + "Stage: " + white + data.getGameStage(),
+                "",
+                colorData + "Players Alive: " + white + data.getPlayersAlive(),
+                colorData + "Spectators: " + white + data.getSpectators()));
+                meta.setDisplayName(noobsters_red + (data.getHostname() != null ? data.getHostname() : this.toString()));
+                item.setItemMeta(meta);
 
-        meta.setLore(LoreBuilder.of(gray + "Config: " + white + data.getTeamSize() + " " + data.getScenarios(), "",
-                gray + "Game Time: " + white + timeConvert(data.getGameTime()),
-                gray + "Players Alive: " + white + data.getPlayersAlive(),
-                gray + "Spectators: " + white + data.getSpectators()));
-        meta.setDisplayName(noobsters_red + (data.getHostname() != null ? data.getHostname() : this.toString()));
-        item.setItemMeta(meta);
+                break;
+            }
+            default: {
+                meta.setLore(LoreBuilder.of(colorData + "Config: " + white + data.getTeamSize() + " " + data.getScenarios(), 
+                "",
+                colorData + "Players: " + white + data.getPlayersOnline() + "/" + data.getUhcslots(),
+                colorData + "Stage: " + white + data.getGameStage()));
+                meta.setDisplayName(noobsters_red + (data.getHostname() != null ? data.getHostname() : this.toString()));
+                item.setItemMeta(meta);
+                
+
+                break;
+            }
+        }
+
         return item;
     }
 

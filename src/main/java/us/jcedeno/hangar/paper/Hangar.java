@@ -26,6 +26,7 @@ public class Hangar extends JavaPlugin {
     private @Getter CommunicatorManager communicatorManager;
     private @Getter Arena arena;
     private @Getter GlobalListeners globalListeners;
+    private @Getter Decoration decoration;
     private @Getter LPManager lpManager;
     private @Getter CondorManager condorManager;
     private @Getter @Setter int maxSlots = 100;
@@ -51,6 +52,7 @@ public class Hangar extends JavaPlugin {
         this.lpManager = new LPManager(this);
         this.arena = new Arena(this);
         this.globalListeners = new GlobalListeners(this);
+        this.decoration = new Decoration(this);
         Bukkit.getOnlinePlayers().forEach(all -> {
             scoreboardManager.sendInitialBoard(all);
         });

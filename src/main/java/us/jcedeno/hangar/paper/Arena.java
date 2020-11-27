@@ -30,9 +30,11 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -451,16 +453,24 @@ public class Arena extends BaseCommand implements Listener {
      */
     @EventHandler
     public void onDamage(EntityDamageEvent e) {
-        if (e.getEntityType() == EntityType.PLAYER && (e.getCause() == EntityDamageEvent.DamageCause.FALL
-                || e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK
-                || e.getCause() == EntityDamageEvent.DamageCause.PROJECTILE)) {
+        if (e.getEntityType() == EntityType.PLAYER && (e.getCause() == EntityDamageEvent.DamageCause.FALL)) {
             var player = (Player) e.getEntity();
-            if (!isInArena(player)) {
+            if (!isInArena(player)) 
                 e.setCancelled(true);
-            }
+            
 
         }
 
+    }
+
+    @EventHandler
+    public void onDamageV2(EntityDamageByEntityEvent e){
+        var damager = e.getDamager();
+        if (damager instanceof Projectile && !(damager instanceof Arrow))
+            return;
+        var player = (Player) e.getEntity();
+        if (!isInArena(player)) e.setCancelled(true);
+        
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -554,9 +564,18 @@ public class Arena extends BaseCommand implements Listener {
 
     @EventHandler
     public void handleArenaDeath(PlayerDeathEvent e) {
-        // Don't broadcast the death message to everyone
-        e.setDeathMessage("");
         var player = e.getEntity();
+        e.setDeathMessage("");
+        if(!isInArena(player)) {
+            player.teleportAsync(GlobalListeners.getSpawnLoc());
+            player.getActivePotionEffects().forEach(eff -> player.removePotionEffect(eff.getType()));
+            Bukkit.getScheduler().runTaskLater(instance, ()->{
+                GlobalListeners.giveTransciever(player);
+            }, 2);
+            return;
+        }
+        
+        // Don't broadcast the death message to everyone
         player.setCanPickupItems(false);
         var arenaData = arenaUsers.get(player.getUniqueId());
         if (arenaData != null) {
