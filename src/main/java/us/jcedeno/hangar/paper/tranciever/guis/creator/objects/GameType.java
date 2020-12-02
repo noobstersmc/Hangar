@@ -47,7 +47,6 @@ public enum GameType {
     public ItemStack asServerDataIcon(UHCData data) {
         var item = serverDataIcon.clone();
         var meta = item.getItemMeta();
-        var scenarioSize = data.getScenarios();
         final var stage = data.getGameStage();
         switch (stage.toLowerCase()) {
             case "ingame": {

@@ -9,11 +9,9 @@ import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 
 public class LPManager {
-    private Hangar instance;
     private ScoreboardManager scoreboardManager;
 
     public LPManager(Hangar instance) {
-        this.instance = instance;
         this.scoreboardManager = instance.getScoreboardManager();
 
         var plugin = Bukkit.getPluginManager().getPlugin("LuckPerms");

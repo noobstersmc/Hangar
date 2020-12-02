@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,19 +14,15 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import us.jcedeno.hangar.paper.Hangar;
 
-@RequiredArgsConstructor
 public class CondorManager {
-    private Hangar instance;
-    private CondorCommand condorCommand;
 
-    public CondorManager(Hangar instance){
-        this.instance = instance;
-        this.condorCommand = new CondorCommand(this.instance);
+    public CondorManager(Hangar instance) {
     }
 
     private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).writeTimeout(30, TimeUnit.SECONDS).build();
+    static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS).build();
     public String create_game_url = "http://condor.jcedeno.us:420/create-server";
 
     public String createMatch(String host, String gameType, String provider, String region, String seed)
