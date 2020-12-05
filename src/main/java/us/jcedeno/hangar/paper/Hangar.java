@@ -15,6 +15,7 @@ import us.jcedeno.hangar.paper.chat.LPManager;
 import us.jcedeno.hangar.paper.commands.DebugCMD;
 import us.jcedeno.hangar.paper.commands.SlotCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
+import us.jcedeno.hangar.paper.communicator.RapidInvManager;
 import us.jcedeno.hangar.paper.condor.CondorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 import us.jcedeno.hangar.paper.tranciever.RapidInvManager;
