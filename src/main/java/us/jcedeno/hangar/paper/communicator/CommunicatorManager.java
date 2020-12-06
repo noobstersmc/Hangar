@@ -2,8 +2,8 @@ package us.jcedeno.hangar.paper.communicator;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -57,11 +57,13 @@ public class CommunicatorManager implements PluginMessageListener {
         Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "BungeeCord", this);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
+            try{
             // Refresh the proxyPlayers variable.
             getCount();
             // Obtain data from jedis
             if (!jedis.isConnected()) {
                 jedis.connect();
+                return;
             }
 
             var servers_data = jedis.keys("servers:*");
@@ -121,7 +123,9 @@ public class CommunicatorManager implements PluginMessageListener {
                 Bukkit.broadcast(ChatColor.RED + "Hangar is not receiving any data. Check connection status.",
                         "hangar.debug");
             }
-
+        }catch(Exception io){
+            io.printStackTrace();
+        }
         }, 25L, 19L);
 
     }
