@@ -25,6 +25,7 @@ repositories {
     maven { url 'https://plugins.gradle.org/m2' }
     maven { url 'https://jitpack.io' }
     maven { url 'https://repo.aikar.co/content/groups/aikar/' }
+    maven { url 'https://oss.sonatype.org/content/groups/public/'}
 }
 
 
@@ -36,6 +37,8 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.12'
 	testCompileOnly 'org.projectlombok:lombok:1.18.12'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+    //NPC Lib
+    compile 'net.jitse:npclib-api:2.9-SNAPSHOT'
     //ACF
     compile 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     //Scoreboard and GUI by Micky, maybe use helper by lucko?
@@ -79,6 +82,7 @@ shadowJar {
     relocate 'kotlin', 'shadded.kotlin'
     relocate 'com.github.benmanes.caffeine', 'shadded.com.github.benmanes.caffeine'
     relocate 'com.google.errorprone', 'shadded.com.google.errorprone'
+    relocate 'net.jitse.npclib', 'shadded.npclib'
     
 }
 
