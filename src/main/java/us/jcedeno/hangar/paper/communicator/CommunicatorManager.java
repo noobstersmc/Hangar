@@ -47,6 +47,7 @@ public class CommunicatorManager implements PluginMessageListener {
 
     HashMap<String, Long> cooldown = new HashMap<>();
     private static Gson gson = new Gson();
+    private static int seconds = 0;
 
     public CommunicatorManager(Hangar instance) {
         this.instance = instance;
@@ -57,76 +58,83 @@ public class CommunicatorManager implements PluginMessageListener {
         Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "BungeeCord", this);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
-            try{
-            // Refresh the proxyPlayers variable.
-            getCount();
-            // Obtain data from jedis
-            if (!jedis.isConnected()) {
-                jedis.connect();
+            if (seconds++ >= 120) {
+                seconds = 0;
+                this.jedis.disconnect();
+                this.jedis.connect();
+                this.jedis.auth("Gxb1D0sbt3VoyvICOQKC8IwakpVdWegW");
                 return;
             }
+            try {
+                // Refresh the proxyPlayers variable.
+                getCount();
+                // Obtain data from jedis
+                if (!jedis.isConnected()) {
+                    jedis.connect();
+                    return;
+                }
 
-            var servers_data = jedis.keys("servers:*");
+                var servers_data = jedis.keys("servers:*");
 
-            if (servers_data.isEmpty()) {
-                cachedData.clear();
-                Bukkit.getOnlinePlayers().forEach(all -> {
-                    var inv = all.getOpenInventory().getTopInventory();
-
-                    if (inv.getHolder() instanceof RapidInv) {
-                        if (inv.getHolder() instanceof BrowserWindow) {
-                            var browser = (BrowserWindow) inv.getHolder();
-                            browser.update(cachedData);
-                        } else if (inv.getHolder() instanceof RecieverGUI) {
-                            var reciever = (RecieverGUI) inv.getHolder();
-                            reciever.update(cachedData);
-                        }
-                    }
-                });
-                return;
-            }
-            var filtered_data = servers_data.stream().filter(Objects::nonNull).collect(Collectors.toList());
-            if (!filtered_data.isEmpty()) {
-                try {
-                    var list_data = jedis.mget(filtered_data.toArray(new String[] {}));
-                    var set = new HashSet<ServerData>();
-
-                    list_data.forEach(all -> {
-                        try {
-                            set.add(gson.fromJson(all, ServerData.class));
-                        } catch (Exception e) {
-                            // e.printStackTrace();
-                        }
-                    });
+                if (servers_data.isEmpty()) {
                     cachedData.clear();
-                    cachedData.addAll(set);
-
                     Bukkit.getOnlinePlayers().forEach(all -> {
                         var inv = all.getOpenInventory().getTopInventory();
+
                         if (inv.getHolder() instanceof RapidInv) {
                             if (inv.getHolder() instanceof BrowserWindow) {
                                 var browser = (BrowserWindow) inv.getHolder();
-                                browser.update(set);
+                                browser.update(cachedData);
                             } else if (inv.getHolder() instanceof RecieverGUI) {
                                 var reciever = (RecieverGUI) inv.getHolder();
-                                reciever.update(set);
+                                reciever.update(cachedData);
                             }
                         }
                     });
-
-                } catch (Exception e) {
-                    Bukkit.broadcast(ChatColor.RED + e.getMessage(), "hangar.debug");
-                    e.printStackTrace();
+                    return;
                 }
+                var filtered_data = servers_data.stream().filter(Objects::nonNull).collect(Collectors.toList());
+                if (!filtered_data.isEmpty()) {
+                    try {
+                        var list_data = jedis.mget(filtered_data.toArray(new String[] {}));
+                        var set = new HashSet<ServerData>();
 
-            } else {
-                Bukkit.broadcast(ChatColor.RED + "Hangar is not receiving any data. Check connection status.",
-                        "hangar.debug");
+                        list_data.forEach(all -> {
+                            try {
+                                set.add(gson.fromJson(all, ServerData.class));
+                            } catch (Exception e) {
+                                // e.printStackTrace();
+                            }
+                        });
+                        cachedData.clear();
+                        cachedData.addAll(set);
+
+                        Bukkit.getOnlinePlayers().forEach(all -> {
+                            var inv = all.getOpenInventory().getTopInventory();
+                            if (inv.getHolder() instanceof RapidInv) {
+                                if (inv.getHolder() instanceof BrowserWindow) {
+                                    var browser = (BrowserWindow) inv.getHolder();
+                                    browser.update(set);
+                                } else if (inv.getHolder() instanceof RecieverGUI) {
+                                    var reciever = (RecieverGUI) inv.getHolder();
+                                    reciever.update(set);
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    Bukkit.broadcast(ChatColor.RED + "Hangar is not receiving any data. Check connection status.",
+                            "hangar.debug");
+                }
+            } catch (Exception io) {
+                io.printStackTrace();
             }
-        }catch(Exception io){
-            io.printStackTrace();
-        }
-        }, 25L, 19L);
+
+        }, 0L, 10L);
 
     }
 
