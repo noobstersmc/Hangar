@@ -32,12 +32,25 @@ public class GameCreator {
         if (!player.hasPermission("condor.create")) {
             return "denied";
         }
-        var request_data = Map.of("host", player.getName(), "game_type", terrain.toString(), "instance_type",
+        var request_data = Map.of("host", player.getName(), "host_uuid", player.getUniqueId(), "limit",
+                getLimit(player), "game_type", terrain.toString(), "instance_type",
                 Map.of("provider", "vultr", "region", "us"), "extra_data",
                 Map.of("level_seed", seed, "scenarios",
                         scenarios.stream().map(ScenariosEnum::toString).collect(Collectors.toList()), "team_size",
                         team_size));
 
         return gson.toJson(request_data);
+    }
+
+    private int getLimit(Player player) {
+        // Unlimited servers -1
+        if (player.hasPermission("condor.limit.*"))
+            return -1;
+        // Check for permission node of 0 >= x > 10
+        for (int i = 0; i < 10; i++)
+            if (player.hasPermission("condor.limit." + i))
+                return i;
+        // Return 0 if not allowed
+        return 0;
     }
 }

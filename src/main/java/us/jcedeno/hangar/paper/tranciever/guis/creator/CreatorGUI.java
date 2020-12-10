@@ -37,6 +37,7 @@ public class CreatorGUI extends RapidInv {
     public static int slot_for_scenarios = SlotPos.from(7, 1);
     public static int slot_for_launch = SlotPos.from(5, 3);
     public static int slot_for_home = SlotPos.from(3, 3);
+    private Gson gson = new Gson();
     // Boiler-plate ends
     private TeamSizeGUI teamSizeGUI;
     private ScenarioSelectorGUI scenarioSelectorGUI;
@@ -112,12 +113,34 @@ public class CreatorGUI extends RapidInv {
                     try {
                         System.out.println(request.toString());
                         var result = condor.post(condor.create_game_url, request);
-                        var condor_id = new Gson().fromJson(result, JsonObject.class).get("condor_id").getAsString();
-                        clicker.sendMessage(ChatColor.GREEN + "Your server has been launched. Please wait "
-                                + ChatColor.WHITE + "[3m]");
-                        clicker.playSound(clicker.getLocation(), Sound.BLOCK_ANVIL_USE, SoundCategory.VOICE, 1.0f,
-                                1.0f);
-                        instance.getCommunicatorManager().getJedis().set("data:" + condor_id, request);
+                        var condor_response = gson.fromJson(result, JsonObject.class);
+                        var condor_id = condor_response.get("condor_id");
+                        var condor_error = condor_response.get("condor_error");
+                        if (condor_id != null) {
+                            var condor_id_str =  condor_id.getAsString();
+                            clicker.sendMessage(ChatColor.GREEN + "Your server has been launched. Please wait "
+                                    + ChatColor.WHITE + "[3m]");
+                            clicker.playSound(clicker.getLocation(), Sound.BLOCK_ANVIL_USE, SoundCategory.VOICE, 1.0f,
+                                    1.0f);
+                            instance.getCommunicatorManager().getJedis().set("data:" + condor_id_str, request);
+                        }
+                        if(condor_error != null){
+                            var condor_error_str = condor_error.getAsString().toUpperCase();
+                            var msg = ChatColor.RED + "Condor couldn't create your server. Error: " + condor_error_str;
+
+                            switch(condor_error_str){
+                                case "LIMIT":{
+                                    clicker.sendMessage(ChatColor.RED + "You've reached your limit of instances.");
+                                    break;
+                                }
+                                default:{
+                                    clicker.sendMessage(msg);
+                                    Bukkit.getLogger().info(msg);
+                                }
+                            }
+
+                        }
+
                     } catch (Exception e1) {
                         clicker.sendMessage(ChatColor.RED + e1.getMessage() + ". Please report this to an admin!");
                         e1.printStackTrace();

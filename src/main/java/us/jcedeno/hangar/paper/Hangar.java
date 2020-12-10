@@ -10,7 +10,6 @@ import co.aikar.commands.PaperCommandManager;
 import fr.mrmicky.fastinv.FastInvManager;
 import lombok.Getter;
 import lombok.Setter;
-import net.jitse.npclib.NPCLib;
 import us.jcedeno.hangar.paper.chat.ChatManager;
 import us.jcedeno.hangar.paper.chat.LPManager;
 import us.jcedeno.hangar.paper.commands.DebugCMD;
@@ -30,7 +29,6 @@ public class Hangar extends JavaPlugin {
     private @Getter Decoration decoration;
     private @Getter LPManager lpManager;
     private @Getter CondorManager condorManager;
-    private @Getter NPCLib npcLib;
     private @Getter @Setter int maxSlots = 100;
 
     // GUI tutorial: https://github.com/MrMicky-FR/FastInv
@@ -46,9 +44,6 @@ public class Hangar extends JavaPlugin {
         } else {
             getLogger().info("Couldn't setup chat. Vault is missing.");
         }
-        this.npcLib = new NPCLib(this);
-
-        var npc = npcLib.createNPC();
 
         this.scoreboardManager = new ScoreboardManager(this);
         this.commandManager = new PaperCommandManager(this);
