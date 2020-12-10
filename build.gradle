@@ -37,8 +37,6 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.12'
 	testCompileOnly 'org.projectlombok:lombok:1.18.12'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-    //NPC Lib
-    compile 'net.jitse:npclib-api:2.9-SNAPSHOT'
     //ACF
     compile 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     //Scoreboard and GUI by Micky, maybe use helper by lucko?
@@ -46,6 +44,8 @@ dependencies {
     compile 'fr.mrmicky:FastBoard:1.1.0'
     //Jedis
     compile 'redis.clients:jedis:3.3.0'
+    //LETUCE
+    compile 'io.lettuce:lettuce-core:6.0.1.RELEASE'
     //okhttp
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
     implementation 'com.google.code.gson:gson:2.8.6'
@@ -82,7 +82,8 @@ shadowJar {
     relocate 'kotlin', 'shadded.kotlin'
     relocate 'com.github.benmanes.caffeine', 'shadded.com.github.benmanes.caffeine'
     relocate 'com.google.errorprone', 'shadded.com.google.errorprone'
-    relocate 'net.jitse.npclib', 'shadded.npclib'
+    relocate 'io.netty', 'shadded.io.netty'
+    relocate 'io.lettuce', 'shadded.io.lettuce'
     
 }
 

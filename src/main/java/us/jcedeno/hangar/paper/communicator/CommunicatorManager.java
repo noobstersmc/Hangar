@@ -23,11 +23,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
-import redis.clients.jedis.Jedis;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
@@ -42,41 +44,36 @@ public class CommunicatorManager implements PluginMessageListener {
     private @Getter SelectorInventory serverGui = new SelectorInventory(InventoryType.HOPPER, "UHC Servers");
     private @Getter Cache<String, GameData> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).build();
     private @Getter Integer proxyPlayers = 0;
-    private @Getter Jedis jedis;
+    // private @Getter Jedis jedis;
+    private @Getter RedisClient redisClient;
+    private @Getter StatefulRedisConnection<String, String> redisConnection;
+    private @Getter RedisAsyncCommands<String, String> commands;
     private @Getter Set<ServerData> cachedData = new HashSet<>();
 
     HashMap<String, Long> cooldown = new HashMap<>();
     private static Gson gson = new Gson();
-    private static int seconds = 0;
 
     public CommunicatorManager(Hangar instance) {
         this.instance = instance;
-        this.jedis = new Jedis("redis-11764.c73.us-east-1-2.ec2.cloud.redislabs.com", 11764);
-        this.jedis.auth("Gxb1D0sbt3VoyvICOQKC8IwakpVdWegW");
+        // LETTUCE
+        this.redisClient = RedisClient.create(
+                "redis://Gxb1D0sbt3VoyvICOQKC8IwakpVdWegW@redis-11764.c73.us-east-1-2.ec2.cloud.redislabs.com:11764/0");
+        this.redisConnection = redisClient.connect();
+        this.commands = redisConnection.async();
+
         // Register communication channel to proxy
         Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(instance, "BungeeCord");
         Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "BungeeCord", this);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
-            if (seconds++ >= 120) {
-                seconds = 0;
-                this.jedis.disconnect();
-                this.jedis.connect();
-                this.jedis.auth("Gxb1D0sbt3VoyvICOQKC8IwakpVdWegW");
-                return;
-            }
             try {
                 // Refresh the proxyPlayers variable.
                 getCount();
                 // Obtain data from jedis
-                if (!jedis.isConnected()) {
-                    jedis.connect();
-                    return;
-                }
 
-                var servers_data = jedis.keys("servers:*");
+                var servers_data = commands.keys("servers:*").get();
 
-                if (servers_data.isEmpty()) {
+                if (servers_data == null || servers_data.isEmpty()) {
                     cachedData.clear();
                     Bukkit.getOnlinePlayers().forEach(all -> {
                         var inv = all.getOpenInventory().getTopInventory();
@@ -93,43 +90,25 @@ public class CommunicatorManager implements PluginMessageListener {
                     });
                     return;
                 }
-                var filtered_data = servers_data.stream().filter(Objects::nonNull).collect(Collectors.toList());
-                if (!filtered_data.isEmpty()) {
-                    try {
-                        var list_data = jedis.mget(filtered_data.toArray(new String[] {}));
-                        var set = new HashSet<ServerData>();
+                var list_data = commands.mget(servers_data.toArray(new String[] {})).get();
+                var data_set = list_data.stream().filter(Objects::nonNull)
+                        .map(all -> gson.fromJson(all.getValue(), ServerData.class)).collect(Collectors.toSet());
 
-                        list_data.forEach(all -> {
-                            try {
-                                set.add(gson.fromJson(all, ServerData.class));
-                            } catch (Exception e) {
-                                // e.printStackTrace();
-                            }
-                        });
-                        cachedData.clear();
-                        cachedData.addAll(set);
+                cachedData.clear();
+                cachedData.addAll(data_set);
 
-                        Bukkit.getOnlinePlayers().forEach(all -> {
-                            var inv = all.getOpenInventory().getTopInventory();
-                            if (inv.getHolder() instanceof RapidInv) {
-                                if (inv.getHolder() instanceof BrowserWindow) {
-                                    var browser = (BrowserWindow) inv.getHolder();
-                                    browser.update(set);
-                                } else if (inv.getHolder() instanceof RecieverGUI) {
-                                    var reciever = (RecieverGUI) inv.getHolder();
-                                    reciever.update(set);
-                                }
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                Bukkit.getOnlinePlayers().forEach(all -> {
+                    var inv = all.getOpenInventory().getTopInventory();
+                    if (inv.getHolder() instanceof RapidInv) {
+                        if (inv.getHolder() instanceof BrowserWindow) {
+                            var browser = (BrowserWindow) inv.getHolder();
+                            browser.update(cachedData);
+                        } else if (inv.getHolder() instanceof RecieverGUI) {
+                            var reciever = (RecieverGUI) inv.getHolder();
+                            reciever.update(cachedData);
+                        }
                     }
-
-                } else {
-                    Bukkit.broadcast(ChatColor.RED + "Hangar is not receiving any data. Check connection status.",
-                            "hangar.debug");
-                }
+                });
             } catch (Exception io) {
                 io.printStackTrace();
             }
@@ -161,7 +140,7 @@ public class CommunicatorManager implements PluginMessageListener {
                 "Sending " + player.getName() + " to " + game_data.getIp() + " (" + game_data.getGameID() + ")");
         Bukkit.getScheduler().runTaskAsynchronously(instance, task -> {
             try {
-                jedis.publish("condor-transfer", request_json);
+                commands.publish("condor-transfer", request_json);
 
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
@@ -183,7 +162,7 @@ public class CommunicatorManager implements PluginMessageListener {
         System.out.println("Sending " + player.getName() + " to " + ip + " (" + name + ")");
         Bukkit.getScheduler().runTaskAsynchronously(instance, task -> {
             try {
-                jedis.publish("condor-transfer", request_json);
+                commands.publish("condor-transfer", request_json);
 
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());

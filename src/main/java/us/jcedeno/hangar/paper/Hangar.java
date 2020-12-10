@@ -73,9 +73,7 @@ public class Hangar extends JavaPlugin {
         getServer().getScheduler().getActiveWorkers().stream().filter(w -> w.getOwner() == this)
                 .map(BukkitWorker::getThread).forEach(Thread::interrupt);
         getServer().getScheduler().cancelTasks(this);
-
-        if (communicatorManager.getJedis().isConnected())
-            communicatorManager.getJedis().disconnect();
+        communicatorManager.getRedisConnection().close();
 
     }
 

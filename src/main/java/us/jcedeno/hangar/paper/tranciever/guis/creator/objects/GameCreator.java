@@ -42,7 +42,7 @@ public class GameCreator {
         return gson.toJson(request_data);
     }
 
-    private int getLimit(Player player) {
+    public static int getLimit(Player player) {
         // Unlimited servers -1
         if (player.hasPermission("condor.limit.*"))
             return -1;

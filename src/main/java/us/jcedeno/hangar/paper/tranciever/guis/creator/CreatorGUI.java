@@ -101,39 +101,61 @@ public class CreatorGUI extends RapidInv {
             var clicker = (Player) e.getWhoClicked();
             var request = gameCreator.createJsonRequest(clicker);
             if (request.equalsIgnoreCase("denied")) {
-                clicker.sendMessage(
-                    ChatColor.WHITE + "You don't have "+ ChatColor.of("#43f9a1") 
-                    + "Community Host"+ ChatColor.WHITE + " rank!\n " + ChatColor.GREEN + "Upgrade your rank at " + ChatColor.GOLD + "noobsters.buycraft.net");
-                clicker.playSound(clicker.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO,
-                        SoundCategory.VOICE, 1.0f, 1.0f);
+                clicker.sendMessage(ChatColor.WHITE + "You don't have " + ChatColor.of("#43f9a1") + "Community Host"
+                        + ChatColor.WHITE + " rank!\n " + ChatColor.GREEN + "Upgrade your rank at " + ChatColor.GOLD
+                        + "noobsters.buycraft.net");
+                clicker.playSound(clicker.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, SoundCategory.VOICE, 1.0f,
+                        1.0f);
             } else {
                 clicker.sendMessage(ChatColor.YELLOW + "Creating a server for you...");
                 Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
                     var condor = instance.getCondorManager();
                     try {
                         System.out.println(request.toString());
+                        // Validation
+                        var lettuce = instance.getCommunicatorManager().getCommands();
+                        var currentRequest = lettuce.keys("request:" + clicker.getUniqueId().toString()).get();
+                        var currentServers = lettuce.keys("servers:uhc:*").get();
+                        if (currentServers != null && !currentServers.isEmpty()) {
+                            var mGet = lettuce.mget(currentServers.toArray(new String[] {})).get();
+                            mGet.forEach(all -> {
+                                if (all.getValue().toLowerCase().contains(clicker.getUniqueId().toString()))
+                                    currentServers.remove(all.getKey());
+                            });
+                        }
+                        var total = (currentServers != null ? currentServers.size() : 0)
+                                + (currentRequest != null ? currentRequest.size() : 0);
+                        var limit = GameCreator.getLimit(clicker);
+                        if (total >= limit) {
+                            clicker.sendMessage(ChatColor.RED + "You are not allowed to have more than " + limit
+                                    + " instances. (" + total + ")");
+                            return;
+                        }
+
+                        lettuce.setex("request:" + clicker.getUniqueId().toString(), 90, request);
+                        // Make request
                         var result = condor.post(condor.create_game_url, request);
                         var condor_response = gson.fromJson(result, JsonObject.class);
                         var condor_id = condor_response.get("condor_id");
                         var condor_error = condor_response.get("condor_error");
                         if (condor_id != null) {
-                            var condor_id_str =  condor_id.getAsString();
+                            var condor_id_str = condor_id.getAsString();
                             clicker.sendMessage(ChatColor.GREEN + "Your server has been launched. Please wait "
                                     + ChatColor.WHITE + "[3m]");
                             clicker.playSound(clicker.getLocation(), Sound.BLOCK_ANVIL_USE, SoundCategory.VOICE, 1.0f,
                                     1.0f);
-                            instance.getCommunicatorManager().getJedis().set("data:" + condor_id_str, request);
+                            lettuce.setex("data:" + condor_id_str, 3600 * 24 * 30, request);
                         }
-                        if(condor_error != null){
+                        if (condor_error != null) {
                             var condor_error_str = condor_error.getAsString().toUpperCase();
                             var msg = ChatColor.RED + "Condor couldn't create your server. Error: " + condor_error_str;
 
-                            switch(condor_error_str){
-                                case "LIMIT":{
+                            switch (condor_error_str) {
+                                case "LIMIT": {
                                     clicker.sendMessage(ChatColor.RED + "You've reached your limit of instances.");
                                     break;
                                 }
-                                default:{
+                                default: {
                                     clicker.sendMessage(msg);
                                     Bukkit.getLogger().info(msg);
                                 }
