@@ -131,13 +131,11 @@ public class CreatorGUI extends RapidInv {
                                     + " instances. (" + total + ")");
                             return;
                         }
-
-                        lettuce.setex("request:" + clicker.getUniqueId().toString(), 90, request);
                         // Make request
+                        lettuce.setex("request:" + clicker.getUniqueId().toString(), 90, request);
                         var result = condor.post(condor.create_game_url, request);
                         var condor_response = gson.fromJson(result, JsonObject.class);
                         var condor_id = condor_response.get("condor_id");
-                        var condor_error = condor_response.get("condor_error");
                         if (condor_id != null) {
                             var condor_id_str = condor_id.getAsString();
                             clicker.sendMessage(ChatColor.GREEN + "Your server has been launched. Please wait "
@@ -145,22 +143,6 @@ public class CreatorGUI extends RapidInv {
                             clicker.playSound(clicker.getLocation(), Sound.BLOCK_ANVIL_USE, SoundCategory.VOICE, 1.0f,
                                     1.0f);
                             lettuce.setex("data:" + condor_id_str, 3600 * 24 * 30, request);
-                        }
-                        if (condor_error != null) {
-                            var condor_error_str = condor_error.getAsString().toUpperCase();
-                            var msg = ChatColor.RED + "Condor couldn't create your server. Error: " + condor_error_str;
-
-                            switch (condor_error_str) {
-                                case "LIMIT": {
-                                    clicker.sendMessage(ChatColor.RED + "You've reached your limit of instances.");
-                                    break;
-                                }
-                                default: {
-                                    clicker.sendMessage(msg);
-                                    Bukkit.getLogger().info(msg);
-                                }
-                            }
-
                         }
 
                     } catch (Exception e1) {

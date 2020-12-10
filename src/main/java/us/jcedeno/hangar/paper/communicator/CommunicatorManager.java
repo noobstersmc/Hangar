@@ -44,7 +44,6 @@ public class CommunicatorManager implements PluginMessageListener {
     private @Getter SelectorInventory serverGui = new SelectorInventory(InventoryType.HOPPER, "UHC Servers");
     private @Getter Cache<String, GameData> cache = Caffeine.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).build();
     private @Getter Integer proxyPlayers = 0;
-    // private @Getter Jedis jedis;
     private @Getter RedisClient redisClient;
     private @Getter StatefulRedisConnection<String, String> redisConnection;
     private @Getter RedisAsyncCommands<String, String> commands;
@@ -69,7 +68,7 @@ public class CommunicatorManager implements PluginMessageListener {
             try {
                 // Refresh the proxyPlayers variable.
                 getCount();
-                // Obtain data from jedis
+                // Obtain data from lettuce
 
                 var servers_data = commands.keys("servers:*").get();
 
@@ -113,7 +112,7 @@ public class CommunicatorManager implements PluginMessageListener {
                 io.printStackTrace();
             }
 
-        }, 0L, 10L);
+        }, 0L, 19L);
 
     }
 
