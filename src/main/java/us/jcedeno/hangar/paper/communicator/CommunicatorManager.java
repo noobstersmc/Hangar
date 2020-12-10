@@ -91,7 +91,8 @@ public class CommunicatorManager implements PluginMessageListener {
                 }
                 var list_data = commands.mget(servers_data.toArray(new String[] {})).get();
                 var data_set = list_data.stream().filter(Objects::nonNull)
-                        .map(all -> gson.fromJson(all.getValue(), ServerData.class)).collect(Collectors.toSet());
+                        .map(all -> gson.fromJson(all.getValue(), ServerData.class))
+                        .sorted((h1, h2) -> h1.getGame_id().compareTo(h2.getGame_id())).collect(Collectors.toSet());
 
                 cachedData.clear();
                 cachedData.addAll(data_set);

@@ -126,7 +126,7 @@ public class CreatorGUI extends RapidInv {
                         var total = (currentServers != null ? currentServers.size() : 0)
                                 + (currentRequest != null ? currentRequest.size() : 0);
                         var limit = GameCreator.getLimit(clicker);
-                        if (total >= limit) {
+                        if (limit != -1 && total >= limit) {
                             clicker.sendMessage(ChatColor.RED + "You are not allowed to have more than " + limit
                                     + " instances. (" + total + ")");
                             return;
