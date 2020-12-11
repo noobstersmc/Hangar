@@ -119,13 +119,14 @@ public class CreatorGUI extends RapidInv {
                         if (currentServers != null && !currentServers.isEmpty()) {
                             var mGet = lettuce.mget(currentServers.toArray(new String[] {})).get();
                             mGet.forEach(all -> {
-                                if (all.getValue().toLowerCase().contains(clicker.getUniqueId().toString()))
+                                if (!all.getValue().toLowerCase().contains(clicker.getName().toLowerCase()))
                                     currentServers.remove(all.getKey());
                             });
-                        }
+                        } 
+                        var limit = GameCreator.getLimit(clicker);
                         var total = (currentServers != null ? currentServers.size() : 0)
                                 + (currentRequest != null ? currentRequest.size() : 0);
-                        var limit = GameCreator.getLimit(clicker);
+                       
                         if (limit != -1 && total >= limit) {
                             clicker.sendMessage(ChatColor.RED + "You are not allowed to have more than " + limit
                                     + " instances. (" + total + ")");
