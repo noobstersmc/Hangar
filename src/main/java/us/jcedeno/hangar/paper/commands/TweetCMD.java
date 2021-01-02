@@ -39,10 +39,10 @@ public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
         var response = LairTwitter.tweet(tweet);
 
         var url = gson.fromJson(response, JsonObject.class).get("url");
-        if(url != null ){
+        if (url != null) {
             var _url = url.getAsString();
             sender.sendMessage(ChatColor.GREEN + "Tweet send! \n" + _url);
-        }else{
+        } else {
             sender.sendMessage(ChatColor.RED + "Couldn't send tweet!");
         }
     }
@@ -51,27 +51,31 @@ public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
     @Subcommand("post")
     @CommandAlias("post")
     public void post(CommandSender sender, Integer time, String... gameConfig) {
-        try{
+        try {
 
-        var future = getTimeInFuture(time);
-        var formatted = DateTimeFormatter.ofPattern("hh:mm").format(future);
-        var timeLeft = getTimeLeft(future);
-        if(time < 10 || time > 30){
-            sender.sendMessage(ChatColor.RED + "Couldn't post must be more than 10 minutes in advance and less than 30 minutes in advance.");
-        }else{
-            String tweet = 
+            var game = "";
+            for (var option : gameConfig) {
+                game = game + option + " ";
+            }
+            sender.sendMessage(game);
+            
+            var future = getTimeInFuture(time);
+            var formatted = DateTimeFormatter.ofPattern("hh:mm").format(future);
+            var timeLeft = getTimeLeft(future);
+            if (time < 10 || time > 30) {
+                sender.sendMessage(ChatColor.RED
+                        + "Couldn't post must be more than 10 minutes in advance and less than 30 minutes in advance.");
+            } else {
+                String tweet =
 
-            "UHC 1.16.X"
-            + "\n\n"
-            + gameConfig + "\n"
-            + "1h + Meetup \n\n" 
-            + timeLeft + "\n"
-            + formatted + " (https://time.is/ET) \n\n IP noobsters.net";
+                        "UHC 1.16.X" + "\n\n" + game + "\n" + "1h + Meetup \n\n" + timeLeft + "\n" + formatted
+                                + " (https://time.is/ET) \n\n IP noobsters.net";
 
-            tweet(sender, tweet);
-        }
-        
-        }catch(Exception e){
+                tweet(sender, tweet);
+            }
+            
+
+        } catch (Exception e) {
 
         }
     }
@@ -101,7 +105,7 @@ public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
         var mins = TimeUnit.MILLISECONDS.toMinutes(millis)
                 - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
 
-        return "In " + ( hours != 0 ? hours + "h " : "") + (mins != 0 ? mins + "m" : "");
+        return "In " + (hours != 0 ? hours + "h " : "") + (mins != 0 ? mins + "m" : "");
     }
 
 }
