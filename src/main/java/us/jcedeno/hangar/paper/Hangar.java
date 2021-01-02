@@ -14,6 +14,7 @@ import us.jcedeno.hangar.paper.chat.ChatManager;
 import us.jcedeno.hangar.paper.chat.LPManager;
 import us.jcedeno.hangar.paper.commands.DebugCMD;
 import us.jcedeno.hangar.paper.commands.SlotCMD;
+import us.jcedeno.hangar.paper.commands.TweetCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
 import us.jcedeno.hangar.paper.condor.CondorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
@@ -48,6 +49,7 @@ public class Hangar extends JavaPlugin {
         this.scoreboardManager = new ScoreboardManager(this);
         this.commandManager = new PaperCommandManager(this);
         this.commandManager.registerCommand(new SlotCMD(this));
+        this.commandManager.registerCommand(new TweetCMD(this));
         this.communicatorManager = new CommunicatorManager(this);
         this.lpManager = new LPManager(this);
         this.arena = new Arena(this);
