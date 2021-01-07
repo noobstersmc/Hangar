@@ -34,4 +34,10 @@ public class ServerData {
     public UHCData getUhcData() {
         return gson.fromJson(extra_data.get("uhc-data").toString(), UHCData.class);
     }
+
+    public int getPlayersIn() {
+        var data = getUhcData();
+
+        return data != null ? data.getPlayersOnline() : 0;
+    }
 }

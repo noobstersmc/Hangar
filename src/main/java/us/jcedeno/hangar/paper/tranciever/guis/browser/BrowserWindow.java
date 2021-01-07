@@ -1,6 +1,8 @@
 package us.jcedeno.hangar.paper.tranciever.guis.browser;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -102,7 +104,7 @@ public class BrowserWindow extends RapidInv {
         var clickedPlayer = (Player) e.getWhoClicked();
         clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE, SoundCategory.VOICE, 1.0f,
                 1.0f);
- 
+
     }
 
     public void updatePrivateGames(Set<ServerData> updateData) {
@@ -147,7 +149,7 @@ public class BrowserWindow extends RapidInv {
             updatePrivateGames(updateData);
             return;
         }
-        var managedData = new HashSet<>(updateData);
+        var managedData = new ArrayList<>(updateData);
         managedData.removeIf(
                 all -> (all.getGameType() == null || all.getGameType() != getCurrentType() || all.isPrivate_game()));
 
@@ -164,6 +166,9 @@ public class BrowserWindow extends RapidInv {
             });
 
         } else {
+            /* Attempt to sort by online players */
+            Collections.sort(managedData, Comparator.comparingInt(ServerData::getPlayersIn));
+
             var indexIterator = addresablesIndexes.iterator();
             managedData.forEach(all -> {
                 if (indexIterator.hasNext()) {
