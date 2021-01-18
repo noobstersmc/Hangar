@@ -1,5 +1,8 @@
 package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
+import java.io.IOException;
+import java.util.stream.Collectors;
+
 import com.destroystokyo.paper.Title;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -17,6 +20,8 @@ import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
+import us.jcedeno.hangar.paper.condor.CondorRequest;
+import us.jcedeno.hangar.paper.condor.NewCondor;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameCreator;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
@@ -99,60 +104,47 @@ public class CreatorGUI extends RapidInv {
 
         setItem(slot_for_launch, LAUNCH_ITEM, e -> {
             var clicker = (Player) e.getWhoClicked();
-            var request = gameCreator.createJsonRequest(clicker);
-            if (request.equalsIgnoreCase("denied")) {
-                clicker.sendMessage(ChatColor.WHITE + "You don't have " + ChatColor.of("#43f9a1") + "Community Host"
-                        + ChatColor.WHITE + " rank!\n " + ChatColor.GREEN + "Upgrade your rank at " + ChatColor.GOLD
-                        + "noobsters.buycraft.net");
-                clicker.playSound(clicker.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, SoundCategory.VOICE, 1.0f,
-                        1.0f);
-            } else {
-                clicker.sendMessage(ChatColor.YELLOW + "Creating a server for you...");
-                Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
-                    var condor = instance.getCondorManager();
-                    try {
-                        System.out.println(request.toString());
-                        // Validation
-                        var lettuce = instance.getCommunicatorManager().getCommands();
-                        var currentRequest = lettuce.keys("request:" + clicker.getUniqueId().toString()).get();
-                        var currentServers = lettuce.keys("servers:uhc:*").get();
-                        if (currentServers != null && !currentServers.isEmpty()) {
-                            var mGet = lettuce.mget(currentServers.toArray(new String[] {})).get();
-                            mGet.forEach(all -> {
-                                if (!all.getValue().toLowerCase().contains(clicker.getName().toLowerCase()))
-                                    currentServers.remove(all.getKey());
-                            });
-                        } 
-                        var limit = GameCreator.getLimit(clicker);
-                        var total = (currentServers != null ? currentServers.size() : 0)
-                                + (currentRequest != null ? currentRequest.size() : 0);
-                       
-                        if (limit != -1 && total >= limit) {
-                            clicker.sendMessage(ChatColor.RED + "You are not allowed to have more than " + limit
-                                    + " instances. (" + total + ")");
-                            return;
-                        }
-                        // Make request
-                        lettuce.setex("request:" + clicker.getUniqueId().toString(), 90, request);
-                        var result = condor.post(condor.create_game_url, request);
-                        var condor_response = gson.fromJson(result, JsonObject.class);
-                        var condor_id = condor_response.get("condor_id");
-                        if (condor_id != null) {
-                            var condor_id_str = condor_id.getAsString();
-                            clicker.sendMessage(ChatColor.GREEN + "Your server has been launched. Please wait "
-                                    + ChatColor.WHITE + "[3m]");
+            var token = NewCondor.getTokenMap().getOrDefault(clicker.getUniqueId().toString(),
+                    clicker.getUniqueId().toString());
+
+            var custom_instance = NewCondor.getCustomInstanceType().remove(clicker.getUniqueId().toString());
+            var whitelist_id = NewCondor.getCustomWhitelistId().getOrDefault(clicker.getUniqueId().toString(), "null");
+
+            var json_request_condor = CondorRequest.of(
+                    custom_instance != null ? custom_instance : gameType.getDefaultInstance(), gameType.toString(),
+                    gameCreator.getScenarios().stream().map(c -> c.toString()).collect(Collectors.toList())
+                            .toArray(new String[] {}),
+                    gameCreator.getTeam_size(), gameCreator.getPrivate_game(), whitelist_id, clicker.getUniqueId(),
+                    clicker.getName());
+            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+                try {
+                    var condor = NewCondor.post(token, json_request_condor.toJson());
+                    System.out.println(condor);
+                    var object = gson.fromJson(condor, JsonObject.class);
+                    var error = object.get("error");
+                    if (error != null) {
+                        clicker.playSound(clicker.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, SoundCategory.VOICE,
+                                1.0f, 1.0f);
+                        clicker.sendMessage(ChatColor.RED + error.getAsString());
+                    } else {
+                        var gid = object.get("game_id");
+                        if (gid != null) {
+                            clicker.sendMessage(
+                                    ChatColor.GREEN + "Your request has been recived with ID " + gid.getAsString());
                             clicker.playSound(clicker.getLocation(), Sound.BLOCK_ANVIL_USE, SoundCategory.VOICE, 1.0f,
                                     1.0f);
-                            lettuce.setex("data:" + condor_id_str, 3600 * 24 * 30, request);
+                        } else {
+                            clicker.sendMessage(ChatColor.RED + "Condor was not able to process request.");
+
                         }
-
-                    } catch (Exception e1) {
-                        clicker.sendMessage(ChatColor.RED + e1.getMessage() + ". Please report this to an admin!");
-                        e1.printStackTrace();
                     }
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                    clicker.sendMessage(
+                            ChatColor.RED + "Condor was not able to process request due to " + e1.getMessage());
+                }
 
-                });
-            }
+            });
             clicker.closeInventory();
 
         });
