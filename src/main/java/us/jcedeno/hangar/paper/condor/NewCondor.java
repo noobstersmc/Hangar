@@ -26,7 +26,7 @@ public class NewCondor {
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS).build();
-    public static String condorURI = "http://localhost/";
+    public static String condorURI = "http://condor.jcedeno.us/";
 
     /**
      * Create a post request in condor.
