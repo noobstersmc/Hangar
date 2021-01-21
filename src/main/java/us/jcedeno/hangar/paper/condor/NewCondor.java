@@ -16,6 +16,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import us.jcedeno.hangar.paper.twitter.LairTweet;
 
 public class NewCondor {
     private @Getter static final Map<String, String> tokenMap = new HashMap<>();
@@ -26,7 +27,7 @@ public class NewCondor {
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS).build();
-    public static String condorURI = "http://condor.jcedeno.us/";
+    public static String CONDOR_URL = "http://condor.jcedeno.us/";
 
     /**
      * Create a post request in condor.
@@ -38,7 +39,7 @@ public class NewCondor {
      */
     public static String post(String auth, String json) throws IOException {
         var body = RequestBody.create(json, JSON);
-        Request request = new Request.Builder().url(condorURI + "instances").addHeader("Authorization", auth)
+        Request request = new Request.Builder().url(CONDOR_URL + "instances").addHeader("Authorization", auth)
                 .addHeader("Content-Type", "application/json").post(body).build();
         try (Response response = client.newCall(request).execute()) {
             return response.body().string();
@@ -54,7 +55,7 @@ public class NewCondor {
      * @throws IOException
      */
     public static String get(String auth, String url) throws IOException {
-        Request request = new Request.Builder().url(condorURI + url).addHeader("Authorization", auth)
+        Request request = new Request.Builder().url(CONDOR_URL + url).addHeader("Authorization", auth)
                 .addHeader("Content-Type", "application/json").get().build();
         try (Response response = client.newCall(request).execute()) {
             return response.body().string();
@@ -82,5 +83,18 @@ public class NewCondor {
         }
 
         return list;
+    }
+
+    public static String tweet(String tweet, String auth) throws IOException {
+        // Create the tweet as json
+        var tweet_json = LairTweet.of(tweet).toJson(gson);
+        // Create the request and call for response
+
+        var body = RequestBody.create(tweet_json, JSON);
+        Request request = new Request.Builder().url(CONDOR_URL + "utils/tweet").addHeader("Authorization", auth)
+                .addHeader("Content-Type", "application/json").post(body).build();
+        try (Response response = client.newCall(request).execute()) {
+            return response.body().string();
+        }
     }
 }

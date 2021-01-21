@@ -1,5 +1,6 @@
 package us.jcedeno.hangar.paper.commands;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -24,7 +25,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
-import us.jcedeno.hangar.paper.twitter.LairTwitter;
+import us.jcedeno.hangar.paper.condor.NewCondor;
 
 @CommandAlias("twitter")
 public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
@@ -35,8 +36,8 @@ public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
     @CommandPermission("tweet.cmd")
     @Subcommand("tweet")
     @CommandAlias("tweet")
-    public void tweet(CommandSender sender, String tweet) {
-        var response = LairTwitter.tweet(tweet);
+    public void tweet(CommandSender sender, String tweet) throws IOException {
+        var response = NewCondor.tweet(tweet, "6QR3W05K3F");
 
         var url = gson.fromJson(response, JsonObject.class).get("url");
         if (url != null) {
@@ -58,7 +59,7 @@ public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
                 game = game + option + " ";
             }
             sender.sendMessage(game);
-            
+
             var future = getTimeInFuture(time);
             var formatted = DateTimeFormatter.ofPattern("hh:mm").format(future);
             var timeLeft = getTimeLeft(future);
@@ -73,7 +74,6 @@ public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
 
                 tweet(sender, tweet);
             }
-            
 
         } catch (Exception e) {
 
