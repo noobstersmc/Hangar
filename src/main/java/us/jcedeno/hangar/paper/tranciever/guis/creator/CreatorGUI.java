@@ -1,5 +1,6 @@
 package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 import com.destroystokyo.paper.Title;
@@ -141,15 +142,21 @@ public class CreatorGUI extends RapidInv {
                             gameCreator.getTeam_size(), gameCreator.getPrivate_game(), whitelist_id,
                             clicker.getUniqueId(), clicker.getName())
                     .toJson();
+            try {
+                var template_id = NewCondor.postTemplate(json_request_condor);
 
-            var component = new ComponentBuilder(ChatColor.GREEN + "Click here to confirm!")
-                    .event(new ClickEvent(Action.RUN_COMMAND,
-                            "/lair create " + gameCreator.getToken().currentTokenKey() + " " + json_request_condor))
-                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                            new Text("This will create a condor instance: \n" + json_request_condor)))
-                    .create();
+                var component = new ComponentBuilder(ChatColor.GREEN + "Click here to confirm!")
+                        .event(new ClickEvent(Action.RUN_COMMAND,
+                                "/lair create " + gameCreator.getToken().currentTokenKey() + " " + template_id))
+                        .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                new Text("This will create a condor instance: \n" + json_request_condor)))
+                        .create();
 
-            clicker.sendMessage(component);
+                clicker.sendMessage(component);
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
             clicker.closeInventory();
 
         });
