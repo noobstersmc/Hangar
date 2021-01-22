@@ -33,18 +33,10 @@ public class DebugCMD extends BaseCommand {
 
     @Default
     public void creator(Player player) {
-        new RecieverGUI("Tranceiver", instance, player).open(player);
+        new RecieverGUI("Tranceiver", instance, player, instance.getCommunicatorManager().getMap().get(
+                NewCondor.getTokenMap().getOrDefault(player.getUniqueId().toString(), player.getUniqueId().toString())))
+                        .open(player);
 
-    }
-
-    @CommandCompletion("default")
-    @Subcommand("token")
-    public void setToken(Player player, @Name("condor-token") String token) {
-        NewCondor.getTokenMap().put(player.getUniqueId().toString(),
-                token.equalsIgnoreCase("default") ? player.getUniqueId().toString() : token);
-
-        player.sendMessage(ChatColor.GREEN + (token.equalsIgnoreCase("default") ? "Your condor token is now default"
-                : "Your condor token has been updated."));
     }
 
     @Subcommand("whitelist")

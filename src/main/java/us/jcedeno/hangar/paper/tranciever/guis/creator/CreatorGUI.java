@@ -1,16 +1,12 @@
 package us.jcedeno.hangar.paper.tranciever.guis.creator;
 
-import java.io.IOException;
 import java.util.stream.Collectors;
 
 import com.destroystokyo.paper.Title;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -18,6 +14,11 @@ import org.bukkit.inventory.ItemStack;
 import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ClickEvent.Action;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.condor.CondorRequest;
@@ -42,19 +43,44 @@ public class CreatorGUI extends RapidInv {
     public static int slot_for_scenarios = SlotPos.from(7, 1);
     public static int slot_for_launch = SlotPos.from(5, 3);
     public static int slot_for_home = SlotPos.from(3, 3);
+    public static int slot_for_private = SlotPos.from(2, 2);
+    public static int slot_for_token = SlotPos.from(6, 2);
     private Gson gson = new Gson();
     // Boiler-plate ends
     private TeamSizeGUI teamSizeGUI;
     private ScenarioSelectorGUI scenarioSelectorGUI;
+    private HumanEntity human;
 
-    public CreatorGUI(String title, RapidInv parentInventory, Hangar instance, GameType gameType) {
+    // Boilerplate
+    private ItemStack VANILLA_GEN = new ItemBuilder(Material.GRASS_BLOCK).name(ChatColor.RED + "UHC Game").build();
+    private ItemStack RUN_GEN = new ItemBuilder(Material.ANCIENT_DEBRIS).name(ChatColor.YELLOW + "UHC Run Game")
+            .build();
+    public ItemStack SEED_ITEM = new ItemBuilder(Material.WHEAT_SEEDS).name(ChatColor.YELLOW + "Seed:")
+            .lore(ChatColor.WHITE + "random").build();
+    public ItemStack TEAM_ITEM = new ItemBuilder(Material.DIAMOND_CHESTPLATE).flags(ItemFlag.HIDE_ATTRIBUTES)
+            .name(ChatColor.YELLOW + "Team Size: " + ChatColor.WHITE + "FFA").build();
+    public ItemStack SCENARIOS_ITEM = new ItemBuilder(Material.TOTEM_OF_UNDYING).name(ChatColor.YELLOW + "Scenarios")
+            .lore(ChatColor.WHITE + " - Vanilla+").build();
+    public ItemStack LAUNCH_ITEM = new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
+            .name(ChatColor.of("#f49348") + "Launch Server").lore(LoreBuilder
+                    .of(ChatColor.WHITE + "Click to launch the server", ChatColor.WHITE + "with the selected config."))
+            .build();
+    public ItemStack HOME_ITEM = new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main menu")
+            .build();
+    public ItemStack PRIVATE_ITEM = new ItemBuilder(Material.LODESTONE)
+            .name(ChatColor.YELLOW + "Private: " + ChatColor.WHITE + "false").build();
+    public ItemStack TOKEN_ITEM = new ItemBuilder(Material.NAME_TAG).name(ChatColor.YELLOW + "Token: ").build();
+
+    public CreatorGUI(String title, RapidInv parentInventory, Hangar instance, GameType gameType, HumanEntity human) {
         super(4 * 9, title);
+        this.human = human;
         if (parentInventory != null) {
             setParentInventory(parentInventory);
         }
 
         this.gameCreator = gameType != null ? gameType.getDefaulGameCreator()
                 : GameCreator.of(GameType.UHC, TerrainGeneration.VANILLA);
+        gameCreator.initToken((Player) human);
 
         setItem(slot_for_gen, gameCreator.getTerrain() == TerrainGeneration.VANILLA ? VANILLA_GEN : RUN_GEN, (e) -> {
             if (e.getCurrentItem().getType() == Material.GRASS_BLOCK) {
@@ -104,50 +130,43 @@ public class CreatorGUI extends RapidInv {
 
         setItem(slot_for_launch, LAUNCH_ITEM, e -> {
             var clicker = (Player) e.getWhoClicked();
-            var token = NewCondor.getTokenMap().getOrDefault(clicker.getUniqueId().toString(),
-                    clicker.getUniqueId().toString());
 
             var custom_instance = NewCondor.getCustomInstanceType().remove(clicker.getUniqueId().toString());
             var whitelist_id = NewCondor.getCustomWhitelistId().getOrDefault(clicker.getUniqueId().toString(), "null");
 
-            var json_request_condor = CondorRequest.of(
-                    custom_instance != null ? custom_instance : gameType.getDefaultInstance(), gameType.toString(),
-                    gameCreator.getScenarios().stream().map(c -> c.toString()).collect(Collectors.toList())
-                            .toArray(new String[] {}),
-                    gameCreator.getTeam_size(), gameCreator.getPrivate_game(), whitelist_id, clicker.getUniqueId(),
-                    clicker.getName());
-            Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
-                try {
-                    var condor = NewCondor.post(token, json_request_condor.toJson());
-                    System.out.println(condor);
-                    var object = gson.fromJson(condor, JsonObject.class);
-                    var error = object.get("error");
-                    if (error != null) {
-                        clicker.playSound(clicker.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, SoundCategory.VOICE,
-                                1.0f, 1.0f);
-                        clicker.sendMessage(ChatColor.RED + error.getAsString());
-                    } else {
-                        var gid = object.get("game_id");
-                        if (gid != null) {
-                            clicker.sendMessage(
-                                    ChatColor.GREEN + "Your request has been recived with ID " + gid.getAsString());
-                            clicker.playSound(clicker.getLocation(), Sound.BLOCK_ANVIL_USE, SoundCategory.VOICE, 1.0f,
-                                    1.0f);
-                        } else {
-                            clicker.sendMessage(ChatColor.RED + "Condor was not able to process request.");
+            var json_request_condor = CondorRequest
+                    .of(custom_instance != null ? custom_instance : gameType.getDefaultInstance(), gameType.toString(),
+                            gameCreator.getScenarios().stream().map(c -> c.toString()).collect(Collectors.toList())
+                                    .toArray(new String[] {}),
+                            gameCreator.getTeam_size(), gameCreator.getPrivate_game(), whitelist_id,
+                            clicker.getUniqueId(), clicker.getName())
+                    .toJson();
 
-                        }
-                    }
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                    clicker.sendMessage(
-                            ChatColor.RED + "Condor was not able to process request due to " + e1.getMessage());
-                }
+            var component = new ComponentBuilder(ChatColor.GREEN + "Click here to confirm!")
+                    .event(new ClickEvent(Action.RUN_COMMAND,
+                            "/lair create " + gameCreator.getToken().currentTokenKey() + " " + json_request_condor))
+                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                            new Text("This will create a condor instance: \n" + json_request_condor)))
+                    .create();
 
-            });
+            clicker.sendMessage(component);
             clicker.closeInventory();
 
         });
+        setItem(slot_for_private, PRIVATE_ITEM, e -> {
+            updatePrivateItem();
+
+        });
+        var meta = TOKEN_ITEM.getItemMeta();
+
+        meta.setDisplayName(ChatColor.YELLOW + "Token: " + ChatColor.WHITE + gameCreator.getToken().current());
+        TOKEN_ITEM.setItemMeta(meta);
+
+        setItem(slot_for_token, TOKEN_ITEM, e -> {
+            updateTokenItem();
+
+        });
+
         setItem(slot_for_home, HOME_ITEM, e -> {
             var inv = getParentInventory();
             while (!(inv instanceof RecieverGUI)) {
@@ -159,21 +178,25 @@ public class CreatorGUI extends RapidInv {
         });
     }
 
-    // Boilerplate
-    private ItemStack VANILLA_GEN = new ItemBuilder(Material.GRASS_BLOCK).name(ChatColor.RED + "UHC Game").build();
-    private ItemStack RUN_GEN = new ItemBuilder(Material.ANCIENT_DEBRIS).name(ChatColor.YELLOW + "UHC Run Game")
-            .build();
-    public ItemStack SEED_ITEM = new ItemBuilder(Material.WHEAT_SEEDS).name(ChatColor.YELLOW + "Seed:")
-            .lore(ChatColor.WHITE + "random").build();
-    public ItemStack TEAM_ITEM = new ItemBuilder(Material.DIAMOND_CHESTPLATE).flags(ItemFlag.HIDE_ATTRIBUTES)
-            .name(ChatColor.YELLOW + "Team Size: " + ChatColor.WHITE + "FFA").build();
-    public ItemStack SCENARIOS_ITEM = new ItemBuilder(Material.TOTEM_OF_UNDYING).name(ChatColor.YELLOW + "Scenarios")
-            .lore(ChatColor.WHITE + " - Vanilla+").build();
-    public ItemStack LAUNCH_ITEM = new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
-            .name(ChatColor.of("#f49348") + "Launch Server").lore(LoreBuilder
-                    .of(ChatColor.WHITE + "Click to launch the server", ChatColor.WHITE + "with the selected config."))
-            .build();
-    public ItemStack HOME_ITEM = new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main menu")
-            .build();
+    void updatePrivateItem() {
+
+        var meta = PRIVATE_ITEM.getItemMeta();
+        gameCreator.togglePrivate();
+        meta.setDisplayName(ChatColor.YELLOW + "Private: " + ChatColor.WHITE + gameCreator.getPrivate_game());
+
+        PRIVATE_ITEM.setItemMeta(meta);
+
+        updateItem(slot_for_private, PRIVATE_ITEM, e -> updatePrivateItem());
+    }
+
+    void updateTokenItem() {
+
+        var meta = TOKEN_ITEM.getItemMeta();
+
+        meta.setDisplayName(ChatColor.YELLOW + "Token: " + ChatColor.WHITE + gameCreator.getToken().next());
+        TOKEN_ITEM.setItemMeta(meta);
+
+        updateItem(slot_for_token, TOKEN_ITEM, e -> updateTokenItem());
+    }
 
 }

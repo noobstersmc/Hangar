@@ -1,6 +1,9 @@
 package us.jcedeno.hangar.paper.tranciever.guis.tranceiver;
 
 import java.util.Set;
+import java.util.UUID;
+
+import com.google.gson.JsonObject;
 
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -11,7 +14,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+
 import fr.mrmicky.fastinv.ItemBuilder;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
@@ -22,8 +27,11 @@ import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
 
 public class RecieverGUI extends RapidInv {
-    public RecieverGUI(String title, Hangar instance, Player player) {
+    private @Getter UUID uuid;
+
+    public RecieverGUI(String title, Hangar instance, Player player, JsonObject profile) {
         super(9 * 4, title);
+        this.uuid = player.getUniqueId();
         this.setItem(SlotPos.from(2, 1), new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE)
                 .name(ChatColor.of("#f64658") + "" + ChatColor.BOLD + "UHC").build(), (e) -> {
                     new BrowserWindow(GameType.UHC, this, instance).open(e.getWhoClicked());
@@ -54,7 +62,7 @@ public class RecieverGUI extends RapidInv {
         head.setLore(LoreBuilder.of(ChatColor.WHITE + "Coming soon..."));
 
         this.setItem(SlotPos.from(4, 3), head);
-        update(instance.getCommunicatorManager().getCachedData());
+        update(instance.getCommunicatorManager().getCachedData(), profile);
     }
 
     @Override
@@ -62,7 +70,7 @@ public class RecieverGUI extends RapidInv {
         super.open(player);
     }
 
-    public void update(Set<ServerData> data) {
+    public void update(Set<ServerData> data, JsonObject profile) {
         var uhc_count = 0;
         var uhc_server = 0;
         var run_count = 0;
@@ -108,6 +116,18 @@ public class RecieverGUI extends RapidInv {
         getInventory().getItem(SlotPos.from(6, 1))
                 .setLore(LoreBuilder.of(ChatColor.of("#b4889a") + "Players: " + ChatColor.WHITE + meetup_count,
                         ChatColor.of("#b4889a") + "Servers: " + ChatColor.WHITE + meetup_server));
+
+        if (profile == null) {
+            getInventory().getItem(SlotPos.from(4, 3))
+                    .setLore(LoreBuilder.of(ChatColor.WHITE + "Community Host: " + ChatColor.RED + "Inactive"));
+        } else {
+            getInventory().getItem(SlotPos.from(4, 3))
+                    .setLore(LoreBuilder.of(
+                            ChatColor.WHITE + "Community Host: " + ChatColor.GOLD
+                                    + profile.get("credits").getAsString(),
+                            ChatColor.WHITE + "Token: " + ChatColor.GREEN + profile.get("name").getAsString()));
+
+        }
 
     }
 

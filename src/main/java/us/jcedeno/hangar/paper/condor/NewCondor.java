@@ -16,7 +16,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import us.jcedeno.hangar.paper.twitter.LairTweet;
 
 public class NewCondor {
     private @Getter static final Map<String, String> tokenMap = new HashMap<>();
@@ -27,7 +26,7 @@ public class NewCondor {
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     static OkHttpClient client = new OkHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS).build();
-    public static String CONDOR_URL = "http://condor.jcedeno.us/";
+    public static String CONDOR_URL = "https://hynix-condor.herokuapp.com/";
 
     /**
      * Create a post request in condor.
@@ -63,6 +62,30 @@ public class NewCondor {
     }
 
     /**
+     * Obtain a Condor User's profile status including outstanding credits, active
+     * instances, instance limit, available credits, and array of instances.
+     * 
+     * @param auth User's auth token
+     * @return JSON containing amounts, limit, and instances as JsonArray.
+     * @throws IOException
+     */
+    public static String getProfile(String auth) throws IOException {
+        return get(auth, "billing/status?onlyActive=true");
+    }
+
+    /**
+     * Obtain a Condor User's profile status including outstanding credits, active
+     * instances, instance limit, available credits, and array of instances.
+     * 
+     * @param auth User's auth token
+     * @return JSON containing amounts, limit, and instances as JsonArray.
+     * @throws IOException
+     */
+    public static String getAllData() throws IOException {
+        return get("auth", "guis/");
+    }
+
+    /**
      * Array of all available compute in a vultr region.
      * 
      * @param region Vultr regions, by default use EWR (NY)
@@ -85,6 +108,14 @@ public class NewCondor {
         return list;
     }
 
+    /**
+     * Ask condor to tweet the given input
+     * 
+     * @param tweet Stringified tweet
+     * @param auth  Authorization token for Condor-lair
+     * @return Condor tweet response, including tweet url
+     * @throws IOException
+     */
     public static String tweet(String tweet, String auth) throws IOException {
         // Create the tweet as json
         var tweet_json = LairTweet.of(tweet).toJson(gson);
@@ -96,5 +127,38 @@ public class NewCondor {
         try (Response response = client.newCall(request).execute()) {
             return response.body().string();
         }
+    }
+
+    /**
+     * Create a delete request in condor
+     * 
+     * @param auth      Authorization token, also used as billing id.
+     * @param condor_id Condor_id of instance to be deleted
+     * @return Json Response in string form.
+     * @throws IOException
+     */
+    public static String delete(String auth, String condor_id) throws IOException {
+        Request request = new Request.Builder().url(CONDOR_URL + "instances/" + condor_id + "")
+                .addHeader("Authorization", auth).addHeader("Content-Type", "application/json").delete().build();
+        try (Response response = client.newCall(request).execute()) {
+            return response.body().string();
+        }
+    }
+
+    /**
+     * Return a Json array of an user's active instances.
+     * 
+     * @param auth Authorization token, use app api key.
+     * @param id   billing id or token to look for.
+     * @return JsonArray of active instances.
+     * @throws IOException
+     */
+    public static String getBill(String auth, String id) throws IOException {
+        Request request = new Request.Builder().url(CONDOR_URL + "bills/" + id + "?onlyActive=true")
+                .addHeader("Authorization", auth).addHeader("Content-Type", "application/json").get().build();
+        try (Response response = client.newCall(request).execute()) {
+            return response.body().string();
+        }
+
     }
 }

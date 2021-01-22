@@ -26,6 +26,7 @@ public class GameCreator {
     String seed = "random";
     Integer team_size = 1;
     Boolean private_game = false;
+    Token token;
     HashSet<ScenariosEnum> scenarios = new HashSet<>();
 
     public String createJsonRequest(Player player) {
@@ -40,6 +41,13 @@ public class GameCreator {
                         team_size));
 
         return gson.toJson(request_data);
+    }
+    public void initToken(Player player){        
+        token = new Token(player);
+    }
+
+    public void togglePrivate() {
+        private_game = !private_game;
     }
 
     public static int getLimit(Player player) {

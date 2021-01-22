@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.twitter;
+package us.jcedeno.hangar.paper.condor;
 
 import com.google.gson.Gson;
 
@@ -11,6 +11,7 @@ public class LairTweet {
     String tweet;
 
     public String toJson(Gson gson) {
+
         return gson.toJson(this);
     }
 }

@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -52,7 +53,7 @@ public class BrowserWindow extends RapidInv {
         setItem(slot_browser_icon, type.getBrowserIcon(), (e) -> nextBrowser(e, type, instance));
         setItem(slot_game_creator, new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
                 .name(ChatColor.of("#f49348") + "Game Creator").build(), (e) -> {
-                    getCreator(getCurrentType(), instance).open(e.getWhoClicked());
+                    getCreator(getCurrentType(), instance, e.getWhoClicked());
                     var clickedPlayer = (Player) e.getWhoClicked();
                     clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ENTITY_SHULKER_AMBIENT,
                             SoundCategory.VOICE, 1.0f, 1.0f);
@@ -190,14 +191,11 @@ public class BrowserWindow extends RapidInv {
         }
     }
 
-    public CreatorGUI getCreator(Hangar plugin) {
-        return getCreator(GameType.UHC, plugin);
-    }
-
-    public CreatorGUI getCreator(GameType type, Hangar plugin) {
+    public CreatorGUI getCreator(GameType type, Hangar plugin, HumanEntity humanEntity) {
         if (creatorGUI == null)
-            creatorGUI = new CreatorGUI(type.toString() + " Creator", this, plugin, type);
+            creatorGUI = new CreatorGUI(type.toString() + " Creator", this, plugin, type, humanEntity);
 
+        creatorGUI.open(humanEntity);
         return creatorGUI;
     }
 

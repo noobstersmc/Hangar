@@ -3,7 +3,6 @@ package us.jcedeno.hangar.paper.communicator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -14,6 +13,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -31,10 +31,10 @@ import lombok.Data;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
+import us.jcedeno.hangar.paper.condor.NewCondor;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
 import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.browser.BrowserWindow;
-import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.TransferRequest;
 import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
 import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.uhc.GameData;
@@ -48,6 +48,9 @@ public class CommunicatorManager implements PluginMessageListener {
     private @Getter StatefulRedisConnection<String, String> redisConnection;
     private @Getter RedisAsyncCommands<String, String> commands;
     private @Getter Set<ServerData> cachedData = new HashSet<>();
+    private @Getter HashMap<String, JsonObject> map = new HashMap<String, JsonObject>();
+
+    private @Getter HashMap<String, String> uuidProfile = new HashMap<>();
 
     HashMap<String, Long> cooldown = new HashMap<>();
     private static Gson gson = new Gson();
@@ -68,34 +71,30 @@ public class CommunicatorManager implements PluginMessageListener {
             try {
                 // Refresh the proxyPlayers variable.
                 getCount();
-                // Obtain data from lettuce
-
-                var servers_data = commands.keys("servers:*").get();
-
-                if (servers_data == null || servers_data.isEmpty()) {
-                    cachedData.clear();
-                    Bukkit.getOnlinePlayers().forEach(all -> {
-                        var inv = all.getOpenInventory().getTopInventory();
-
-                        if (inv.getHolder() instanceof RapidInv) {
-                            if (inv.getHolder() instanceof BrowserWindow) {
-                                var browser = (BrowserWindow) inv.getHolder();
-                                browser.update(cachedData);
-                            } else if (inv.getHolder() instanceof RecieverGUI) {
-                                var reciever = (RecieverGUI) inv.getHolder();
-                                reciever.update(cachedData);
-                            }
-                        }
-                    });
-                    return;
-                }
-                var list_data = commands.mget(servers_data.toArray(new String[] {})).get();
-                var data_set = list_data.stream().filter(Objects::nonNull)
-                        .map(all -> gson.fromJson(all.getValue(), ServerData.class))
-                        .sorted((h1, h2) -> h1.getGame_id().compareTo(h2.getGame_id())).collect(Collectors.toSet());
-
+                var allData = gson.fromJson(NewCondor.getAllData(), JsonObject.class);
+                var serverData = allData.getAsJsonObject("server_data");
+                var dataEntrySet = serverData.entrySet();
+                // Clear current data.
                 cachedData.clear();
-                cachedData.addAll(data_set);
+                // Recieved data empty
+                if (!dataEntrySet.isEmpty()) {
+                    var server_data = dataEntrySet.stream().map(all -> gson.fromJson(all.getValue(), ServerData.class))
+                            .sorted((h1, h2) -> h1.getGame_id().compareTo(h2.getGame_id())).collect(Collectors.toSet());
+
+                    cachedData.addAll(server_data);
+                }
+
+                allData.getAsJsonArray("profiles").forEach(all -> {
+                    var element = all.getAsJsonObject();
+                    map.put(element.get("token").getAsString(), element);
+                });
+
+                var tokens = allData.getAsJsonObject("tokens");
+                if (tokens != null) {
+                    tokens.entrySet().forEach(to -> {
+                        NewCondor.getTokenMap().put(to.getKey(), to.getValue().getAsString());
+                    });
+                }
 
                 Bukkit.getOnlinePlayers().forEach(all -> {
                     var inv = all.getOpenInventory().getTopInventory();
@@ -105,7 +104,19 @@ public class CommunicatorManager implements PluginMessageListener {
                             browser.update(cachedData);
                         } else if (inv.getHolder() instanceof RecieverGUI) {
                             var reciever = (RecieverGUI) inv.getHolder();
-                            reciever.update(cachedData);
+                            var token = NewCondor.getTokenMap().get(all.getUniqueId().toString());
+                            if (token != null) {
+                                var condor_suscription = map.get(token);
+                                if (condor_suscription != null) {
+                                    reciever.update(cachedData, condor_suscription);
+                                } else {
+
+                                    reciever.update(cachedData, null);
+                                }
+
+                            } else {
+                                reciever.update(cachedData, null);
+                            }
                         }
                     }
                 });
@@ -132,20 +143,17 @@ public class CommunicatorManager implements PluginMessageListener {
             return;
         }
         cooldown.put(player.getName(), System.currentTimeMillis());
-        var name = "game-" + game_data.getGameID().substring(0, 6);
-        var request = transfer_request.of(player.getName(), game_data.getIp(), name);
-        var request_json = gson.toJson(request);
         // Send the request to channel condor-transfer for proxy to read it
         System.out.println(
                 "Sending " + player.getName() + " to " + game_data.getIp() + " (" + game_data.getGameID() + ")");
-        Bukkit.getScheduler().runTaskAsynchronously(instance, task -> {
-            try {
-                commands.publish("condor-transfer", request_json);
 
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-            }
-        });
+        var json_request = new JsonObject();
+        json_request.addProperty("type", "connect");
+        json_request.addProperty("uuid", player.getUniqueId().toString());
+        json_request.addProperty("ip", game_data.getIp());
+        json_request.addProperty("condor_id", game_data.getGameID());
+        commands.publish("condor", json_request.toString());
+        System.out.println(json_request.toString());
     }
 
     public void sendToIP(Player player, String ip, String ID) {
@@ -155,19 +163,15 @@ public class CommunicatorManager implements PluginMessageListener {
             return;
         }
         cooldown.put(player.getName(), System.currentTimeMillis());
-        var name = "game-" + ID.substring(0, 6);
-        var request = TransferRequest.of(player.getName(), ip, name);
-        var request_json = gson.toJson(request);
-        // Send the request to channel condor-transfer for proxy to read it
-        System.out.println("Sending " + player.getName() + " to " + ip + " (" + name + ")");
-        Bukkit.getScheduler().runTaskAsynchronously(instance, task -> {
-            try {
-                commands.publish("condor-transfer", request_json);
+        System.out.println("Sending " + player.getName() + " to " + ip + " (" + ID + ")");
 
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-            }
-        });
+        var json_request = new JsonObject();
+        json_request.addProperty("type", "connect");
+        json_request.addProperty("uuid", player.getUniqueId().toString());
+        json_request.addProperty("ip", ip);
+        json_request.addProperty("condor_id", ID);
+        commands.publish("condor", json_request.toString());
+        System.out.println(json_request.toString());
     }
 
     public void setMetaForUHC(ItemMeta meta, GameData game_data) {
