@@ -104,19 +104,9 @@ public class CommunicatorManager implements PluginMessageListener {
                             browser.update(cachedData);
                         } else if (inv.getHolder() instanceof RecieverGUI) {
                             var reciever = (RecieverGUI) inv.getHolder();
-                            var token = NewCondor.getTokenMap().get(all.getUniqueId().toString());
-                            if (token != null) {
-                                var condor_suscription = map.get(token);
-                                if (condor_suscription != null) {
-                                    reciever.update(cachedData, condor_suscription);
-                                } else {
-
-                                    reciever.update(cachedData, null);
-                                }
-
-                            } else {
-                                reciever.update(cachedData, null);
-                            }
+                            var update = getMap().get(NewCondor.getTokenMap().getOrDefault(all.getUniqueId().toString(),
+                                    all.getUniqueId().toString()));
+                            reciever.update(cachedData, update);
                         }
                     }
                 });

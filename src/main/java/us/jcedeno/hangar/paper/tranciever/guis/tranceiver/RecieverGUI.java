@@ -1,5 +1,6 @@
 package us.jcedeno.hangar.paper.tranciever.guis.tranceiver;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -121,11 +122,23 @@ public class RecieverGUI extends RapidInv {
             getInventory().getItem(SlotPos.from(4, 3))
                     .setLore(LoreBuilder.of(ChatColor.WHITE + "Community Host: " + ChatColor.RED + "Inactive"));
         } else {
-            getInventory().getItem(SlotPos.from(4, 3))
-                    .setLore(LoreBuilder.of(
-                            ChatColor.WHITE + "Community Host: " + ChatColor.GOLD
-                                    + profile.get("credits").getAsString(),
-                            ChatColor.WHITE + "Token: " + ChatColor.GREEN + profile.get("name").getAsString()));
+            var lore = new ArrayList<String>();
+            lore.add(ChatColor.WHITE + "Host Token: " + ChatColor.GREEN + profile.get("name").getAsString());
+            var credits = profile.get("credits").getAsString();
+            lore.add(ChatColor.WHITE + "Credits: " + ChatColor.GOLD
+                    + (credits.equalsIgnoreCase("-420") ? "Unlimited" : credits));
+            var instances = profile.getAsJsonArray("instances");
+            if (instances != null) {
+                var iter = instances.iterator();
+                var count = 0;
+                while (iter.hasNext()) {
+                    iter.next();
+                    count++;
+                }
+                lore.add(ChatColor.WHITE + "Active Games: " + ChatColor.GREEN + count);
+            }
+
+            getInventory().getItem(SlotPos.from(4, 3)).setLore(lore);
 
         }
 

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.bukkit.entity.Player;
 
 import lombok.Getter;
-import us.jcedeno.hangar.paper.condor.NewCondor;
 
 public class Token {
     private @Getter ArrayList<String> stringArray = new ArrayList<>();
@@ -54,8 +53,7 @@ public class Token {
         } else if (current.equalsIgnoreCase("Quadrados")) {
             return "X2XWdMMoQH";
         } else {
-            return NewCondor.getTokenMap().getOrDefault(player.getUniqueId().toString(),
-                    player.getUniqueId().toString());
+            return player.getUniqueId().toString();
         }
     }
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.google.gson.JsonArray;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import co.aikar.commands.BaseCommand;
@@ -39,14 +40,13 @@ public class DebugCMD extends BaseCommand {
 
     }
 
-    @Subcommand("whitelist")
-    public void setWhitelistId(Player player, @Name("condor-whitelist-id") String whitelistID) {
-        NewCondor.getCustomWhitelistId().put(player.getUniqueId().toString(),
-                whitelistID.equalsIgnoreCase("default") ? "null" : whitelistID);
+    @CommandPermission("condor.createtoken")
+    @Subcommand("create-token")
+    public void setWhitelistId(CommandSender sender, @Name("Token Name") String name, @Name("UUID") String uuid,
+            @Name("hours") int hours, @Name("limit") int limit) throws IOException {
+        NewCondor.createToken("{\"token\": \"" + uuid + "\", \"name\": \"" + name + "\", \"credits\": \"" + hours
+                + "\", \"limit\":\" " + limit + "\"}");
 
-        player.sendMessage(
-                ChatColor.GREEN + (whitelistID.equalsIgnoreCase("default") ? "Your whitelist ID is now default"
-                        : "Your whitelist ID  has been updated."));
     }
 
     @CommandPermission("condor.list")
