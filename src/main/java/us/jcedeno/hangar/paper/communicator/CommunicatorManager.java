@@ -72,7 +72,7 @@ public class CommunicatorManager implements PluginMessageListener {
                 // Refresh the proxyPlayers variable.
                 getCount();
                 var allData = gson.fromJson(NewCondor.getAllData(), JsonObject.class);
-                var serverData = allData.getAsJsonObject("server_data");
+                var serverData = allData.getAsJsonObject("json_info");
                 var dataEntrySet = serverData.entrySet();
                 // Clear current data.
                 cachedData.clear();
