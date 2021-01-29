@@ -17,11 +17,15 @@ public class UHCData {
     int playersAlive;
     int spectators;
     String teamSize;
-    String scenarios;
+    String[] scenarios;
     String hostname;
     String displayName;
 
-    public static UHCData fromOldFormat(GameData oldFormatData){
-        return of(oldFormatData.getStartTime(), oldFormatData.getGameTime(), oldFormatData.isPvp(), oldFormatData.isPrivateGame(), oldFormatData.getPlayersOnline(), oldFormatData.getGameStage(), oldFormatData.getPlayersOnline(), oldFormatData.getPlayersAlive(), oldFormatData.getSpectators(), oldFormatData.getGameType(), oldFormatData.getScenarios(), oldFormatData.getHostname(), oldFormatData.getHostname());
+    public static UHCData fromOldFormat(GameData oldFormatData) {
+        return of(oldFormatData.getStartTime(), oldFormatData.getGameTime(), oldFormatData.isPvp(),
+                oldFormatData.isPrivateGame(), oldFormatData.getPlayersOnline(), oldFormatData.getGameStage(),
+                oldFormatData.getPlayersOnline(), oldFormatData.getPlayersAlive(), oldFormatData.getSpectators(),
+                oldFormatData.getGameType(), oldFormatData.getScenarios(), oldFormatData.getHostname(),
+                oldFormatData.getHostname());
     }
 }

@@ -3,7 +3,6 @@ package us.jcedeno.hangar.paper.tranciever.guis.browser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.gson.Gson;
@@ -110,7 +109,8 @@ public class BrowserWindow extends RapidInv {
 
     public void updatePrivateGames(Set<ServerData> updateData) {
 
-        var managedData = new HashSet<>(updateData);
+        var managedData = new ArrayList<ServerData>(updateData);
+        Collections.sort(managedData, Comparator.comparingInt(ServerData::getPlayersIn));
         managedData.removeIf(all -> all == null || all.getGameType() == null || !all.isPrivate_game());
 
         if (managedData.isEmpty()) {

@@ -16,10 +16,9 @@ public class GameData {
     int playersOnline;
     int playersAlive;
     int spectators;
-    String scenarios;
+    String[] scenarios;
     String gameType;
     String hostname;
     String ip;
-
 
 }

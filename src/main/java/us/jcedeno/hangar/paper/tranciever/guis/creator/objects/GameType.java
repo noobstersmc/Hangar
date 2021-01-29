@@ -1,5 +1,7 @@
 package us.jcedeno.hangar.paper.tranciever.guis.creator.objects;
 
+import java.util.ArrayList;
+
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -75,10 +77,17 @@ public enum GameType {
                 break;
             }
             default: {
-                meta.setLore(LoreBuilder.of(
-                        colorData + "Config: " + white + data.getTeamSize() + " " + data.getScenarios(), "",
-                        colorData + "Players: " + white + data.getPlayersOnline() + "/" + data.getUhcslots(),
-                        colorData + "Stage: " + white + data.getGameStage()));
+                var lore = new ArrayList<String>();
+                lore.add(colorData + "Config: " + white + data.getTeamSize());
+                if (data.getScenarios().length > 0) {
+                    for (var scenario : data.getScenarios()) {
+                        lore.add(" - " + scenario);
+                    }
+                } else {
+                    lore.add("Vanilla+");
+                }
+                lore.add(colorData + "Players: " + white + data.getPlayersOnline() + "/" + data.getUhcslots());
+                lore.add(colorData + "Stage: " + white + data.getGameStage());
                 meta.setDisplayName(
                         noobsters_red + (data.getHostname() != null ? data.getHostname() : this.toString()));
                 item.setItemMeta(meta);
