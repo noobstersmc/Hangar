@@ -8,7 +8,6 @@ import org.bukkit.inventory.ItemStack;
 
 import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
-import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 
 public enum GameType {
     UHC("uhc", TerrainGeneration.VANILLA,
@@ -64,12 +63,24 @@ public enum GameType {
         final var stage = data.getGameStage();
         switch (stage.toLowerCase()) {
             case "ingame": {
-                meta.setLore(
-                        LoreBuilder.of(colorData + "Config: " + white + data.getTeamSize() + " " + data.getScenarios(),
-                                "", colorData + "Game Time: " + white + timeConvert(data.getGameTime()),
-                                colorData + "Stage: " + white + data.getGameStage(), "",
-                                colorData + "Players Alive: " + white + data.getPlayersAlive(),
-                                colorData + "Spectators: " + white + data.getSpectators()));
+                var lore = new ArrayList<String>();
+                lore.add(colorData + "Game Time: " + white + timeConvert(data.getGameTime()));
+                lore.add(colorData + "Stage: " + white + data.getGameStage());
+                lore.add(" ");
+
+                lore.add(colorData + "Config: " + white + data.getTeamSize());
+                if (data.getScenarios().length > 0) {
+                    for (var scenario : data.getScenarios()) {
+                        lore.add(ChatColor.WHITE + " - " + scenario);
+                    }
+                } else {
+                    lore.add(ChatColor.WHITE + " - Vanilla+");
+                }
+
+                lore.add(" ");
+                lore.add(colorData + "Players Alive: " + white + data.getPlayersAlive());
+                lore.add(colorData + "Spectators: " + white + data.getSpectators());
+                meta.setLore(lore);
                 meta.setDisplayName(
                         noobsters_red + (data.getHostname() != null ? data.getHostname() : this.toString()));
                 item.setItemMeta(meta);
@@ -81,13 +92,14 @@ public enum GameType {
                 lore.add(colorData + "Config: " + white + data.getTeamSize());
                 if (data.getScenarios().length > 0) {
                     for (var scenario : data.getScenarios()) {
-                        lore.add(" - " + scenario);
+                        lore.add(ChatColor.WHITE + " - " + scenario);
                     }
                 } else {
-                    lore.add("Vanilla+");
+                    lore.add(ChatColor.WHITE + " - Vanilla+");
                 }
                 lore.add(colorData + "Players: " + white + data.getPlayersOnline() + "/" + data.getUhcslots());
                 lore.add(colorData + "Stage: " + white + data.getGameStage());
+                meta.setLore(lore);
                 meta.setDisplayName(
                         noobsters_red + (data.getHostname() != null ? data.getHostname() : this.toString()));
                 item.setItemMeta(meta);
@@ -136,6 +148,6 @@ public enum GameType {
 
     @Override
     public String toString() {
-        return name;
+        return name.toUpperCase();
     }
 }

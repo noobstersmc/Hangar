@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 
 import com.destroystokyo.paper.Title;
-import com.google.gson.Gson;
 
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -46,11 +45,10 @@ public class CreatorGUI extends RapidInv {
     public static int slot_for_home = SlotPos.from(3, 3);
     public static int slot_for_private = SlotPos.from(2, 2);
     public static int slot_for_token = SlotPos.from(6, 2);
-    private Gson gson = new Gson();
     // Boiler-plate ends
     private TeamSizeGUI teamSizeGUI;
     private ScenarioSelectorGUI scenarioSelectorGUI;
-    private HumanEntity human;
+    public HumanEntity human;
 
     // Boilerplate
     private ItemStack VANILLA_GEN = new ItemBuilder(Material.GRASS_BLOCK).name(ChatColor.RED + "UHC Game").build();
@@ -135,13 +133,12 @@ public class CreatorGUI extends RapidInv {
             var custom_instance = NewCondor.getCustomInstanceType().remove(clicker.getUniqueId().toString());
             var whitelist_id = NewCondor.getCustomWhitelistId().getOrDefault(clicker.getUniqueId().toString(), "null");
 
-            var json_request_condor = CondorRequest
-                    .of(custom_instance != null ? custom_instance : gameType.getDefaultInstance(), gameType.toString(),
-                            gameCreator.getScenarios().stream().map(c -> c.toString()).collect(Collectors.toList())
-                                    .toArray(new String[] {}),
-                            gameCreator.getTeam_size(), gameCreator.getPrivate_game(), whitelist_id,
-                            clicker.getUniqueId(), clicker.getName())
-                    .toJson();
+            var json_request_condor = CondorRequest.of(
+                    custom_instance != null ? custom_instance : gameType.getDefaultInstance(), gameType.toString(),
+                    gameCreator.getScenarios().stream().map(c -> c.toString()).collect(Collectors.toList())
+                            .toArray(new String[] {}),
+                    gameCreator.getTeam_size(), gameCreator.getPrivate_game(), whitelist_id, clicker.getUniqueId(),
+                    clicker.getName(), gameCreator.getSeed()).toJson();
             try {
                 var template_id = NewCondor.postTemplate(json_request_condor);
 

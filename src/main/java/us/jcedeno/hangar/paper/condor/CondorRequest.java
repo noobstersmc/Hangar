@@ -19,6 +19,7 @@ public class CondorRequest {
     String whitelistID;
     UUID hostUUID;
     String host;
+    String seed;
 
     /**
      * Transform the object into an stringified json.
@@ -43,6 +44,7 @@ public class CondorRequest {
             innerJson.addProperty("team_size", teamSize);
             innerJson.addProperty("private", privateGame);
             innerJson.addProperty("whitelist", whitelistID);
+            innerJson.addProperty("level_seed", seed);
 
             json.add("config", innerJson);
         }

@@ -172,15 +172,20 @@ public class BrowserWindow extends RapidInv {
 
             var indexIterator = addresablesIndexes.iterator();
             managedData.forEach(all -> {
-                if (indexIterator.hasNext()) {
-                    var index = indexIterator.next();
-                    var gson = new Gson();
-                    var data = gson.fromJson(all.getExtra_data().get("uhc-data").toString(), UHCData.class);
-                    updateItem(index, all.getGameType().asServerDataIcon(data), e -> {
-                        instance.getCommunicatorManager().sendToIP((Player) e.getWhoClicked(), all.getIpv4(),
-                                all.getGame_id().toString());
-                    });
-                } else {
+                try {
+                    if (indexIterator.hasNext()) {
+                        var index = indexIterator.next();
+                        var gson = new Gson();
+                        var data = gson.fromJson(all.getExtra_data().get("uhc-data").toString(), UHCData.class);
+                        updateItem(index, all.getGameType().asServerDataIcon(data), e -> {
+                            instance.getCommunicatorManager().sendToIP((Player) e.getWhoClicked(), all.getIpv4(),
+                                    all.getGame_id().toString());
+                        });
+                    } else {
+
+                    }
+
+                } catch (Exception e) {
 
                 }
             });

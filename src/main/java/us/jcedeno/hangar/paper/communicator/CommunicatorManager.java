@@ -73,15 +73,20 @@ public class CommunicatorManager implements PluginMessageListener {
                 getCount();
                 var allData = gson.fromJson(NewCondor.getAllData(), JsonObject.class);
                 var serverData = allData.getAsJsonObject("json_info");
-                var dataEntrySet = serverData.entrySet();
-                // Clear current data.
-                cachedData.clear();
-                // Recieved data empty
-                if (!dataEntrySet.isEmpty()) {
-                    var server_data = dataEntrySet.stream().map(all -> gson.fromJson(all.getValue(), ServerData.class))
-                            .sorted((h1, h2) -> h1.getGame_id().compareTo(h2.getGame_id())).collect(Collectors.toSet());
 
-                    cachedData.addAll(server_data);
+                if (serverData != null) {
+                    var dataEntrySet = serverData.entrySet();
+                    // Clear current data.
+                    cachedData.clear();
+                    // Recieved data empty
+                    if (!dataEntrySet.isEmpty()) {
+                        var server_data = dataEntrySet.stream()
+                                .map(all -> gson.fromJson(all.getValue(), ServerData.class))
+                                .sorted((h1, h2) -> h1.getGame_id().compareTo(h2.getGame_id()))
+                                .collect(Collectors.toSet());
+
+                        cachedData.addAll(server_data);
+                    }
                 }
 
                 allData.getAsJsonArray("profiles").forEach(all -> {
