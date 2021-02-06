@@ -169,6 +169,22 @@ public class CommunicatorManager implements PluginMessageListener {
         System.out.println(json_request.toString());
     }
 
+    public void moveToServer(Player player, String serverName) {
+        var value = cooldown.get(player.getName());
+        if (value != null && (System.currentTimeMillis() - value) <= 2000) {
+            player.sendMessage("You must wait 2 seconds to connect again.");
+            return;
+        }
+        cooldown.put(player.getName(), System.currentTimeMillis());
+
+        var json_request = new JsonObject();
+        json_request.addProperty("type", "moveOne");
+        json_request.addProperty("uuid", player.getUniqueId().toString());
+        json_request.addProperty("target", serverName);
+        commands.publish("condor", json_request.toString());
+
+    }
+
     public void setMetaForUHC(ItemMeta meta, GameData game_data) {
 
         final var stage = game_data.getGameStage();

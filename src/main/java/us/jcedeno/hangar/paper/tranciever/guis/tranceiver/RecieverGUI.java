@@ -33,14 +33,14 @@ public class RecieverGUI extends RapidInv {
     public RecieverGUI(String title, Hangar instance, Player player, JsonObject profile) {
         super(9 * 4, title);
         this.uuid = player.getUniqueId();
-        this.setItem(SlotPos.from(2, 1), new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE)
+        this.setItem(SlotPos.from(1, 1), new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE)
                 .name(ChatColor.of("#f64658") + "" + ChatColor.BOLD + "UHC").build(), (e) -> {
                     new BrowserWindow(GameType.UHC, this, instance).open(e.getWhoClicked());
                     var clickedPlayer = (Player) e.getWhoClicked();
                     clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE,
                             SoundCategory.VOICE, 1.0f, 1.0f);
                 });
-        this.setItem(SlotPos.from(4, 1),
+        this.setItem(SlotPos.from(3, 1),
                 new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "" + ChatColor.BOLD + "UHC Run")
                         .enchant(Enchantment.ARROW_DAMAGE).flags(ItemFlag.HIDE_ENCHANTS).build(),
                 (e) -> {
@@ -49,7 +49,7 @@ public class RecieverGUI extends RapidInv {
                     clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE,
                             SoundCategory.VOICE, 1.0f, 1.0f);
                 });
-        this.setItem(SlotPos.from(6, 1),
+        this.setItem(SlotPos.from(5, 1),
                 new ItemBuilder(Material.EMERALD).name(ChatColor.GREEN + "" + ChatColor.BOLD + "UHC Meetup")
                         .enchant(Enchantment.ARROW_DAMAGE).flags(ItemFlag.HIDE_ENCHANTS).build(),
                 (e) -> {
@@ -58,6 +58,11 @@ public class RecieverGUI extends RapidInv {
                     clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE,
                             SoundCategory.VOICE, 1.0f, 1.0f);
                 });
+        var survival_item = new ItemBuilder(Material.GRASS_BLOCK)
+                .name(ChatColor.AQUA + "" + ChatColor.BOLD + "Survival").lore(ChatColor.AQUA + "Only Special users!")
+                .build();
+        this.setItem(SlotPos.from(7, 1), survival_item,
+                (e) -> instance.getCommunicatorManager().moveToServer((Player) e.getWhoClicked(), "survival"));
 
         var head = getPlayerHead(player, ChatColor.of("#a1f448") + player.getName() + "'s profile");
         head.setLore(LoreBuilder.of(ChatColor.WHITE + "Coming soon..."));
