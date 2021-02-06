@@ -59,10 +59,10 @@ public class RecieverGUI extends RapidInv {
                             SoundCategory.VOICE, 1.0f, 1.0f);
                 });
         var survival_item = new ItemBuilder(Material.GRASS_BLOCK)
-                .name(ChatColor.AQUA + "" + ChatColor.BOLD + "Survival").lore(ChatColor.AQUA + "Only Special users!")
-                .build();
-        this.setItem(SlotPos.from(7, 1), survival_item,
-                (e) -> instance.getCommunicatorManager().moveToServer((Player) e.getWhoClicked(), "survival"));
+                .name(ChatColor.AQUA + "" + ChatColor.BOLD + "Survival")
+                .lore(ChatColor.of("#a1b2cc") + "Only special users!").build();
+        this.setItem(SlotPos.from(7, 1), survival_item, (e) -> instance.getCommunicatorManager()
+                .sendToIP((Player) e.getWhoClicked(), "localhost:25579", "00fa1b59-cfa0-4ce5-9f80-7c30f04d1610"));
 
         var head = getPlayerHead(player, ChatColor.of("#a1f448") + player.getName() + "'s profile");
         head.setLore(LoreBuilder.of(ChatColor.WHITE + "Coming soon..."));
@@ -113,13 +113,13 @@ public class RecieverGUI extends RapidInv {
 
         }
 
-        getInventory().getItem(SlotPos.from(2, 1))
+        getInventory().getItem(SlotPos.from(1, 1))
                 .setLore(LoreBuilder.of(ChatColor.of("#b4889a") + "Players: " + ChatColor.WHITE + uhc_count,
                         ChatColor.of("#b4889a") + "Servers: " + ChatColor.WHITE + uhc_server));
-        getInventory().getItem(SlotPos.from(4, 1))
+        getInventory().getItem(SlotPos.from(3, 1))
                 .setLore(LoreBuilder.of(ChatColor.of("#b4889a") + "Players: " + ChatColor.WHITE + run_count,
                         ChatColor.of("#b4889a") + "Servers: " + ChatColor.WHITE + run_server));
-        getInventory().getItem(SlotPos.from(6, 1))
+        getInventory().getItem(SlotPos.from(5, 1))
                 .setLore(LoreBuilder.of(ChatColor.of("#b4889a") + "Players: " + ChatColor.WHITE + meetup_count,
                         ChatColor.of("#b4889a") + "Servers: " + ChatColor.WHITE + meetup_server));
 
