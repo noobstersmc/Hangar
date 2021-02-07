@@ -643,7 +643,7 @@ public class Arena extends BaseCommand implements Listener {
         });
         var loc = e.getEntity().getLocation();
         e.getDrops().add(new ItemStack(Material.GOLDEN_APPLE));
-        killer.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 20 * 1, 1));
+        killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20 * 15, 0));
         loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(10);
 
     }
