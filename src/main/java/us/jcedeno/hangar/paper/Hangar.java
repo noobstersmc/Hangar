@@ -3,6 +3,8 @@ package us.jcedeno.hangar.paper;
 import com.google.gson.Gson;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World.Environment;
+import org.bukkit.WorldCreator;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitWorker;
 
@@ -64,6 +66,11 @@ public class Hangar extends JavaPlugin {
         this.condorManager = new CondorManager(this);
 
         this.commandManager.registerCommand(new DebugCMD(this));
+
+        WorldCreator arena = new WorldCreator("arena");
+        arena.environment(Environment.NORMAL);
+        arena.createWorld();
+
 
     }
 

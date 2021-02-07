@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.server.ServiceRegisterEvent;
 import org.bukkit.event.server.ServiceUnregisterEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -21,7 +20,6 @@ public class ChatManager implements Listener {
     private Hangar instance;
     private @Getter Permission perms;
     private @Getter Chat chat;
-    private final String format = "&7{prefix}%1$s{suffix}:&f %2$s";
 
     public ChatManager(Hangar instance) {
         this.instance = instance;
@@ -50,15 +48,6 @@ public class ChatManager implements Listener {
                     "New Vault Chat implementation registered: " + (vaultChat == null ? "null" : vaultChat.getName()));
         }
         this.chat = vaultChat;
-    }
-
-    // Listeners
-    @EventHandler
-    public void onChat(AsyncPlayerChatEvent e) {
-        final var player = e.getPlayer();
-        e.setFormat(colorize(format.replace("{prefix}", chat.getPlayerPrefix(player)).replace("{suffix}",
-                chat.getPlayerSuffix(player))));
-
     }
 
     @EventHandler

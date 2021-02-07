@@ -50,8 +50,8 @@ import us.jcedeno.hangar.paper.tranciever.RapidInv;
 public class GlobalListeners implements Listener {
     private Hangar instance;
     private ScoreboardManager scoreboardManager;
-    private static @Getter String TRANSCEIVER_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Transceiver";
-    private static String ARENA_NAME = ChatColor.WHITE + "" + ChatColor.BOLD + "Arena";
+    private static @Getter String TRANSCEIVER_NAME = ChatColor.WHITE + "Transceiver";
+    private static String ARENA_NAME = ChatColor.WHITE + "Arena";
     private static @Getter Location spawnLoc = Bukkit.getWorlds().get(0).getHighestBlockAt(0, 0).getLocation().add(0.5,
             2.0, 0.5);
 
@@ -59,7 +59,7 @@ public class GlobalListeners implements Listener {
         this.instance = instance;
         this.scoreboardManager = instance.getScoreboardManager();
         Bukkit.getPluginManager().registerEvents(this, this.instance);
-        spawnLoc.setYaw(90);
+        spawnLoc.setYaw(0);
         spawnLoc.setPitch(0);
     }
 

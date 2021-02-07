@@ -57,6 +57,8 @@ import org.bukkit.inventory.EnchantingInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Criterias;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.RenderType;
@@ -87,14 +89,14 @@ import us.jcedeno.hangar.paper.objects.CoordinatePair;
 @CommandAlias("arena|practice|a|p|ffa")
 public class Arena extends BaseCommand implements Listener {
     // Objects to control the data for random teleport
-    private @Getter @Setter CoordinatePair centerCoordinate = CoordinatePair.of(-160, 0, -300);
+    private @Getter @Setter CoordinatePair centerCoordinate = CoordinatePair.of(0, 0, 0);
     private @Getter @Setter int radius = 140;
     private final List<Namespaced> destroyableKeys = Arrays.asList(NamespacedKey.minecraft("end_stone"),
             NamespacedKey.minecraft("ancient_debris"), NamespacedKey.minecraft("gold_block"));
     // Blocks that should be restored.
     private final List<BlockRestoreTask> restoreTasks = new ArrayList<>();
     // An instance of the plugin
-    private @Getter int arenaLimits = 30;
+    private @Getter int arenaLimits = 60;
     private Hangar instance;
     // Loading cacche to self expire players
     private @Getter HashMap<UUID, ArenaPlayerData> arenaUsers = new HashMap<>();
@@ -127,7 +129,7 @@ public class Arena extends BaseCommand implements Listener {
     @Default
     public void onPratice(Player player) {
         if (arenaUsers.size() >= this.arenaLimits && !player.hasPermission("reserved.slot")) {
-            player.sendMessage(ChatColor.GREEN + "Arena is full! \n Get your rank at " + ChatColor.GOLD
+            player.sendMessage(ChatColor.WHITE + "Arena is full! \n" + ChatColor.GREEN + "Get your rank at " + ChatColor.GOLD
                     + "noobstersuhc.buycraft.net");
             return;
         }
@@ -453,12 +455,23 @@ public class Arena extends BaseCommand implements Listener {
      */
     @EventHandler
     public void onDamage(EntityDamageEvent e) {
-        if (e.getEntityType() == EntityType.PLAYER && (e.getCause() == EntityDamageEvent.DamageCause.FALL)) {
-            var player = (Player) e.getEntity();
-            if (!isInArena(player)) 
-                e.setCancelled(true);
-            
+        if(e.getCause() == EntityDamageEvent.DamageCause.VOID){
+            e.setDamage(1000);
+            return;
+        }
 
+        if (e.getEntityType() == EntityType.PLAYER && e.getCause() == EntityDamageEvent.DamageCause.FALL) {
+            var player = (Player) e.getEntity();
+            var uuid = player.getUniqueId();
+            if(arenaUsers.containsKey(uuid)){
+                var user = arenaUsers.get(uuid);
+                if(!user.isFallDamage()){
+                    user.setFallDamage(true);
+                }else if(user.isFallDamage()){
+                    return;
+                }
+            }
+            e.setCancelled(true);   
         }
 
     }
@@ -493,7 +506,7 @@ public class Arena extends BaseCommand implements Listener {
     public void onRespawn(PlayerRespawnEvent e) {
         if (isInArena(e.getPlayer())) {
             giveKit(e.getPlayer());
-            e.setRespawnLocation(getRandomLocation(e.getPlayer().getWorld()));
+            e.setRespawnLocation(getRandomLocation(Bukkit.getWorld("arena")));
         } else {
             GlobalListeners.giveTransciever(e.getPlayer());
         }
@@ -559,6 +572,13 @@ public class Arena extends BaseCommand implements Listener {
         e.getEntity().setHealth(20.0D);
         e.getEntity().setFireTicks(0);
         e.getEntity().getActivePotionEffects().forEach(eff -> e.getEntity().removePotionEffect(eff.getType()));
+        var player = (Player) e.getEntity();
+        var uuid = player.getUniqueId();
+        if(arenaUsers.containsKey(uuid)){
+            var user = arenaUsers.get(uuid);
+            user.setFallDamage(false);
+        }
+
 
     }
 
@@ -589,7 +609,7 @@ public class Arena extends BaseCommand implements Listener {
                     Bukkit.getScheduler().runTask(instance, () -> {
                         player.setCanPickupItems(true);
                         giveKit(player);
-                        player.teleport(getRandomLocation(player.getWorld()));
+                        player.teleport(getRandomLocation(Bukkit.getWorld("arena")));
                     });
                 } else {
                     GlobalListeners.giveTransciever(player);
@@ -606,33 +626,64 @@ public class Arena extends BaseCommand implements Listener {
             var killerData = arenaUsers.get(bits);
             killerData.setCurrentKills(killerData.getCurrentKills() + 1);
             // random drops
-            if (killerData.getCurrentKills() >= 2) {
+            if (killerData.getCurrentKills() > 2) {
                 Bukkit.getPluginManager()
                         .callEvent(new KillStreakEvent(killer.getUniqueId(), killerData.getCurrentKills()));
-                e.getDrops().add(new ItemBuilder(random.nextBoolean() ? Material.OAK_PLANKS : Material.BOOK).build());
+                killer.getInventory().addItem(chooseDrop(killer.getInventory().getContents()));
+                killer.getInventory().addItem(new ItemBuilder(random.nextBoolean() ? Material.OAK_PLANKS : Material.BOOK).build());
             }
         }
         // DROPS
 
         e.getDrops().forEach(all -> {
-            if (all.getType() == Material.OAK_PLANKS || all.getType() == Material.BOOK)
+            if (all.getType() == Material.DIAMOND)
                 return;
             all.setType(Material.AIR);
 
         });
-        e.getDrops().add(new ItemBuilder(Material.DIAMOND).amount(2).build());
-        e.getDrops().add(new ItemBuilder(Material.ARROW).amount(4).build());
-        e.getDrops().add(new ItemBuilder(Material.GOLDEN_APPLE).amount(2).build());
         var loc = e.getEntity().getLocation();
-        loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(7);
+        e.getDrops().add(new ItemStack(Material.GOLDEN_APPLE));
+        killer.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 20 * 1, 1));
+        loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(10);
 
+    }
+
+    public ItemStack chooseDrop(ItemStack[] inventory){
+        ItemStack item = null;
+        Boolean helmet = false;
+        Boolean chestplate = false;
+        Boolean leggings = false;
+        Boolean boots = false;
+
+        for (int i = 0; i < inventory.length; i++) {
+            if(inventory[i] == null);
+            else if(inventory[i].getType() == Material.DIAMOND_HELMET || inventory[i].getType() == Material.NETHERITE_HELMET) helmet = true;
+            else if(inventory[i].getType() == Material.DIAMOND_CHESTPLATE || inventory[i].getType() == Material.NETHERITE_CHESTPLATE) chestplate = true;
+            else if(inventory[i].getType() == Material.DIAMOND_LEGGINGS || inventory[i].getType() == Material.NETHERITE_LEGGINGS) leggings = true;
+            else if(inventory[i].getType() == Material.DIAMOND_BOOTS || inventory[i].getType() == Material.NETHERITE_BOOTS) boots = true;
+        }
+
+        List<ItemStack> stuff = new ArrayList<>();
+
+        if(!helmet) stuff.add(new ItemStack(Material.DIAMOND_HELMET));
+        if(!chestplate) stuff.add(new ItemStack(Material.DIAMOND_CHESTPLATE));
+        if(!leggings) stuff.add(new ItemStack(Material.DIAMOND_LEGGINGS));
+        if(!boots) stuff.add(new ItemStack(Material.DIAMOND_BOOTS));
+        
+        if(stuff.isEmpty()){
+            item = new ItemStack(Material.DIAMOND);
+        }else{
+            item = stuff.get(random.nextInt(stuff.size()));
+        }
+
+        return item;
     }
 
     private Location getRandomLocation(World world) {
         int x = (random.nextBoolean() ? 1 : -1) * random.nextInt(radius / 2);
         int z = (random.nextBoolean() ? 1 : -1) * random.nextInt(radius / 2);
-        return world.getHighestBlockAt(centerCoordinate.getRadiusX() + x, centerCoordinate.getRadiusZ() + z)
-                .getLocation().add(0.0, 2.0, 0.0);
+        Location loc = new Location(world, x, 105, z);
+        return loc;
     }
 
     public void giveKit(final Player player) {
@@ -685,12 +736,13 @@ public class Arena extends BaseCommand implements Listener {
             inv.setItemInOffHand(new ItemBuilder(Material.SHIELD).build());
 
         }
+        inv.addItem(new ItemStack(Material.CROSSBOW));
 
     }
 
     public void teleportPlayer(Player player) {
         // Scatter the players
-        player.teleport(getRandomLocation(player.getWorld()));
+        player.teleport(getRandomLocation(Bukkit.getWorld("arena")));
     }
 
     // vida solo visible por arena players
@@ -721,7 +773,6 @@ public class Arena extends BaseCommand implements Listener {
                 case STICK:
                 case OAK_PLANKS:
                 case BOOK:
-                case COOKIE:
                 case POTION:
                 case APPLE:
                 case NETHERITE_INGOT:
@@ -753,11 +804,7 @@ public class Arena extends BaseCommand implements Listener {
                         result.setItemMeta(meta);
                         e.getInventory().setResult(result);
                     case STICK:
-                    case DIAMOND_CHESTPLATE:
-                    case DIAMOND_LEGGINGS:
-                    case DIAMOND_BOOTS:
                     case DIAMOND_SWORD:
-                    case DIAMOND_HELMET:
                     case DIAMOND_AXE:
                     case GOLD_INGOT:
                     case NETHERITE_INGOT:
