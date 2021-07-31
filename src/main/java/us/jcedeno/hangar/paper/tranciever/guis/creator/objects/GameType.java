@@ -17,12 +17,13 @@ public enum GameType {
     RUN("uhc-run", TerrainGeneration.RUN,
             new ItemBuilder(Material.DIAMOND_HELMET).name(ChatColor.YELLOW + "UHC Run Games")
                     .lore(ChatColor.WHITE + "Click to switch gamemodes.").flags(ItemFlag.HIDE_ATTRIBUTES).build(),
-            new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "UHC Run Match").build()),
-    MEETUP("uhc-meetup", TerrainGeneration.VANILLA,
+            new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "UHC Run Match").build());
+
+    /*MEETUP("uhc-meetup", TerrainGeneration.VANILLA,
             new ItemBuilder(Material.IRON_HELMET).name(ChatColor.YELLOW + "UHC Meetup Games")
                     .flags(ItemFlag.HIDE_ATTRIBUTES).lore(ChatColor.WHITE + "Click to switch gamemodes.").build(),
             new ItemBuilder(Material.EMERALD).name(ChatColor.YELLOW + "UHC Meetup Match")
-                    .flags(ItemFlag.HIDE_ATTRIBUTES).build());
+                    .flags(ItemFlag.HIDE_ATTRIBUTES).build());*/
 
     String name;
     TerrainGeneration defaulTerrainGeneration;
@@ -47,8 +48,8 @@ public enum GameType {
                 return "vhf-3c-8gb";
             case RUN:
                 return "vhf-2c-4gb";
-            case MEETUP:
-                return "vhf-1c-2gb";
+            /*case MEETUP:
+                return "vhf-1c-2gb";*/
         }
         return "";
     }

@@ -27,7 +27,6 @@ import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameCreator;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.TerrainGeneration;
-import us.jcedeno.hangar.paper.tranciever.guis.creator.subgui.ScenarioSelectorGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.subgui.TeamSizeGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
 import us.jcedeno.hangar.paper.tranciever.utils.GeneralizedInputTask;
@@ -43,11 +42,11 @@ public class CreatorGUI extends RapidInv {
     public static int slot_for_scenarios = SlotPos.from(7, 1);
     public static int slot_for_launch = SlotPos.from(5, 3);
     public static int slot_for_home = SlotPos.from(3, 3);
-    public static int slot_for_private = SlotPos.from(2, 2);
-    public static int slot_for_token = SlotPos.from(6, 2);
+    public static int slot_for_private = SlotPos.from(7, 1);
+    public static int slot_for_token = SlotPos.from(4, 3);
     // Boiler-plate ends
     private TeamSizeGUI teamSizeGUI;
-    private ScenarioSelectorGUI scenarioSelectorGUI;
+    //private ScenarioSelectorGUI scenarioSelectorGUI;
     public HumanEntity human;
 
     // Boilerplate
@@ -119,13 +118,13 @@ public class CreatorGUI extends RapidInv {
             teamSizeGUI.open(player);
         });
 
-        setItem(slot_for_scenarios, SCENARIOS_ITEM, e -> {
+        /*setItem(slot_for_scenarios, SCENARIOS_ITEM, e -> {
             var player = (Player) e.getWhoClicked();
             if (scenarioSelectorGUI == null) {
                 scenarioSelectorGUI = new ScenarioSelectorGUI(this, player);
             }
             scenarioSelectorGUI.open(player);
-        });
+        });*/
 
         setItem(slot_for_launch, LAUNCH_ITEM, e -> {
             var clicker = (Player) e.getWhoClicked();

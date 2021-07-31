@@ -33,14 +33,16 @@ public class RecieverGUI extends RapidInv {
     public RecieverGUI(String title, Hangar instance, Player player, JsonObject profile) {
         super(9 * 4, title);
         this.uuid = player.getUniqueId();
-        this.setItem(SlotPos.from(1, 1), new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE)
+
+        this.setItem(SlotPos.from(2, 1), new ItemBuilder(Material.ENCHANTED_GOLDEN_APPLE)
                 .name(ChatColor.of("#f64658") + "" + ChatColor.BOLD + "UHC").build(), (e) -> {
                     new BrowserWindow(GameType.UHC, this, instance).open(e.getWhoClicked());
                     var clickedPlayer = (Player) e.getWhoClicked();
                     clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE,
                             SoundCategory.VOICE, 1.0f, 1.0f);
                 });
-        this.setItem(SlotPos.from(3, 1),
+
+        this.setItem(SlotPos.from(6, 1),
                 new ItemBuilder(Material.APPLE).name(ChatColor.YELLOW + "" + ChatColor.BOLD + "UHC Run")
                         .enchant(Enchantment.ARROW_DAMAGE).flags(ItemFlag.HIDE_ENCHANTS).build(),
                 (e) -> {
@@ -49,7 +51,8 @@ public class RecieverGUI extends RapidInv {
                     clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE,
                             SoundCategory.VOICE, 1.0f, 1.0f);
                 });
-        this.setItem(SlotPos.from(5, 1),
+
+        /*this.setItem(SlotPos.from(5, 1),
                 new ItemBuilder(Material.EMERALD).name(ChatColor.GREEN + "" + ChatColor.BOLD + "UHC Meetup")
                         .enchant(Enchantment.ARROW_DAMAGE).flags(ItemFlag.HIDE_ENCHANTS).build(),
                 (e) -> {
@@ -57,14 +60,17 @@ public class RecieverGUI extends RapidInv {
                     var clickedPlayer = (Player) e.getWhoClicked();
                     clickedPlayer.playSound(clickedPlayer.getLocation(), Sound.ITEM_ARMOR_EQUIP_TURTLE,
                             SoundCategory.VOICE, 1.0f, 1.0f);
-                });
-        var survival_item = new ItemBuilder(Material.GRASS_BLOCK)
+                });*/
+
+        /*var survival_item = new ItemBuilder(Material.GRASS_BLOCK)
                 .name(ChatColor.AQUA + "" + ChatColor.BOLD + "Survival Nightmare")
                 .lore(ChatColor.of("#c7c7c7") + "A combination between Survival, Anarchy,",
                 ChatColor.of("#c7c7c7") + "PvP and Permadeath difficulty changes.",
                 ChatColor.of("#a1b2cc") + "Only special users!").build();
+
+
         this.setItem(SlotPos.from(7, 1), survival_item, (e) -> instance.getCommunicatorManager()
-                .sendToIP((Player) e.getWhoClicked(), "localhost:25579", "00fa1b59-cfa0-4ce5-9f80-7c30f04d1610"));
+                .sendToIP((Player) e.getWhoClicked(), "localhost:25579", "00fa1b59-cfa0-4ce5-9f80-7c30f04d1610"));*/
 
         var head = getPlayerHead(player, ChatColor.of("#a1f448") + player.getName() + "'s profile");
         head.setLore(LoreBuilder.of(ChatColor.WHITE + "Coming soon..."));
@@ -83,8 +89,8 @@ public class RecieverGUI extends RapidInv {
         var uhc_server = 0;
         var run_count = 0;
         var run_server = 0;
-        var meetup_count = 0;
-        var meetup_server = 0;
+        //var meetup_count = 0;
+        //var meetup_server = 0;
 
         for (ServerData serverData : data) {
             try {
@@ -99,11 +105,12 @@ public class RecieverGUI extends RapidInv {
                         run_count += uhcData.getPlayersOnline();
                         run_server++;
                         break;
-                    case MEETUP:
+
+                    /*case MEETUP:
                         meetup_count += uhcData.getPlayersOnline();
                         meetup_server++;
 
-                        break;
+                        break;*/
 
                     default:
                         break;
@@ -115,15 +122,17 @@ public class RecieverGUI extends RapidInv {
 
         }
 
-        getInventory().getItem(SlotPos.from(1, 1))
+        getInventory().getItem(SlotPos.from(2, 1))
                 .setLore(LoreBuilder.of(ChatColor.of("#c7c7c7") + "Players: " + ChatColor.WHITE + uhc_count,
                         ChatColor.of("#c7c7c7") + "Servers: " + ChatColor.WHITE + uhc_server));
-        getInventory().getItem(SlotPos.from(3, 1))
+
+        getInventory().getItem(SlotPos.from(6, 1))
                 .setLore(LoreBuilder.of(ChatColor.of("#c7c7c7") + "Players: " + ChatColor.WHITE + run_count,
                         ChatColor.of("#c7c7c7") + "Servers: " + ChatColor.WHITE + run_server));
-        getInventory().getItem(SlotPos.from(5, 1))
+
+        /*getInventory().getItem(SlotPos.from(5, 1))
                 .setLore(LoreBuilder.of(ChatColor.of("#c7c7c7") + "Players: " + ChatColor.WHITE + meetup_count,
-                        ChatColor.of("#c7c7c7") + "Servers: " + ChatColor.WHITE + meetup_server));
+                        ChatColor.of("#c7c7c7") + "Servers: " + ChatColor.WHITE + meetup_server));*/
 
         if (profile == null) {
             getInventory().getItem(SlotPos.from(4, 3))

@@ -47,39 +47,7 @@ public @RequiredArgsConstructor class TweetCMD extends BaseCommand {
             sender.sendMessage(ChatColor.RED + "Couldn't send tweet!");
         }
     }
-
-    @CommandPermission("post.cmd")
-    @Subcommand("post")
-    @CommandAlias("post")
-    public void post(CommandSender sender, Integer time, String... gameConfig) {
-        try {
-
-            var game = "";
-            for (var option : gameConfig) {
-                game = game + option + " ";
-            }
-            sender.sendMessage(game);
-
-            var future = getTimeInFuture(time);
-            var formatted = DateTimeFormatter.ofPattern("hh:mm").format(future);
-            var timeLeft = getTimeLeft(future);
-            if (time < 10 || time > 30) {
-                sender.sendMessage(ChatColor.RED
-                        + "Couldn't post must be more than 10 minutes in advance and less than 30 minutes in advance.");
-            } else {
-                String tweet =
-
-                        "UHC 1.16.X" + "\n\n" + game + "\n" + "1h + Meetup \n\n" + timeLeft + "\n" + formatted
-                                + " (https://time.is/ET) \n\n IP noobsters.net";
-
-                tweet(sender, tweet);
-            }
-
-        } catch (Exception e) {
-
-        }
-    }
-
+    
     static LocalDateTime getTimeInFuture(long m) {
         var time = LocalDateTime.now(ZoneId.of("America/New_York")).plusMinutes(m).withSecond(0);
 

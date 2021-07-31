@@ -59,9 +59,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.Criterias;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.Vector;
 
@@ -117,10 +114,11 @@ public class Arena extends BaseCommand implements Listener {
         this.instance.getCommandManager().registerCommand(this);
         Bukkit.getPluginManager().registerEvents(this, instance);
         // Register health objectives for arena.
-        scoreboard.registerNewObjective("health2", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.INTEGER)
+        /*scoreboard.registerNewObjective("health2", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.INTEGER)
                 .setDisplaySlot(DisplaySlot.PLAYER_LIST);
+
         scoreboard.registerNewObjective("health", Criterias.HEALTH, ChatColor.DARK_RED + "❤", RenderType.HEARTS)
-                .setDisplaySlot(DisplaySlot.BELOW_NAME);
+                .setDisplaySlot(DisplaySlot.BELOW_NAME);*/
         // Handle the kill streaks.
         this.streakHandler = new KillStreakHandler(instance);
     }
@@ -643,6 +641,7 @@ public class Arena extends BaseCommand implements Listener {
         });
         var loc = e.getEntity().getLocation();
         e.getDrops().add(new ItemStack(Material.GOLDEN_APPLE));
+        e.getDrops().add(new ItemStack(Material.ARROW, 4));
         killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20 * 15, 0));
         loc.getWorld().spawn(loc, ExperienceOrb.class).setExperience(10);
 
