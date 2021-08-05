@@ -15,8 +15,8 @@ plugins{
 sourceCompatibility = 11
 targetCompatibility = 11
 
-group = 'us.jcedeno.hangar'
-version = '0.1-SNAPSHOT'
+group = 'net.noobsters'
+version = '0.1B-SNAPSHOT'
 
 publishing {
     publications {

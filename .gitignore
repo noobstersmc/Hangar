@@ -20,7 +20,7 @@ out/
 run/
 *.iml
 .idea_modules/
-
+lombok.config
 ### Eclipse ###
 .metadata
 bin/
