@@ -7,7 +7,9 @@
 plugins{
     id 'eclipse'
     id 'java'
+    id 'maven-publish'
     id 'com.github.johnrengelman.shadow' version '6.0.0'
+    id "io.freefair.lombok" version '5.3.0'
 }
 
 sourceCompatibility = 11
@@ -16,6 +18,22 @@ targetCompatibility = 11
 group = 'us.jcedeno.hangar'
 version = '0.1-SNAPSHOT'
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url 'https://dev.repo.noobsters.net/'
+            credentials {
+                username "${hynx_usr}"
+                password "${hynx_pass}"
+            }
+        }
+    }
+}
 
 repositories {
     mavenCentral()
@@ -26,6 +44,13 @@ repositories {
     maven { url 'https://jitpack.io' }
     maven { url 'https://repo.aikar.co/content/groups/aikar/' }
     maven { url 'https://oss.sonatype.org/content/groups/public/'}
+    maven {
+        url 'https://dev.repo.noobsters.net/'
+        credentials {
+            username "${hynx_usr}"
+            password "${hynx_pass}"
+        }
+    }
 }
 
 
@@ -75,6 +100,8 @@ tasks.withType(JavaCompile) {
 }
 
 shadowJar {
+    minimize()
+
     relocate 'co.aikar.commands', 'shadded.acf'
     relocate 'co.aikar.locales', 'shadded.acf.locales'
     relocate 'fr.mrmicky', 'shadded.gui'
@@ -86,7 +113,6 @@ shadowJar {
     relocate 'com.google.errorprone', 'shadded.com.google.errorprone'
     relocate 'io.netty', 'shadded.io.netty'
     relocate 'io.lettuce', 'shadded.io.lettuce'
-    
 }
 
 
