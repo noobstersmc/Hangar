@@ -34,7 +34,7 @@ if ! [ -f debug/$startScript ]; then
     # Cat the start debug script
     cat >>debug/$startScript <<EOF
 #!/bin/bash
-java agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar debug/$startScript
+java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar outputfile
 EOF
     steps=$((steps + 1))
 fi
