@@ -83,7 +83,7 @@ if ! [ -f .vscode/launch.json ]; then
     {
       \"type\": \"java\", // Required
       \"name\": \"Connect Debug Server\", // Whatever name
-      \"request\": \"attach\", //Required
+      \"request\": \"attach\", // Required
       \"mainClass\": \"us.jcedeno.hangar.paper.Hangar\", // Your plugins's main class
       \"hostName\": \"localhost\", // Debug server host
       \"port\": 5005 // Debug server port (different than minecraft server port)
@@ -93,16 +93,19 @@ if ! [ -f .vscode/launch.json ]; then
 fi
 if [ $launch_file -eq 1 ]; then
     echo -e -n $green
-    echo "Please create a launch.json file in your VS Code folder (.vscode/launch.json) using the configuration above as a reference"
+    echo -e "Please create a$white launch.json$green file in your VS Code folder $white(.vscode/launch.json)$green using the configuration above as a reference"
     echo -e -n $reset
 fi
 # Print final output depending on steps achived.
 if ! [ $steps -eq 0 ]; then
     echo -e -n $green
-    echo -e "Setup finished. $steps step(s) was/were required.\nOnce you've setup your launch.json, cd into the debug folder and run sh start-debug.sh to start the debug server. "
+    echo -e "Setup finished. $steps step(s) was/were required.\nOnce you've setup your$white launch.json$green, cd into the debug folder and run$white sh start-debug.sh$green to start the debug server. "
     echo -e -n $reset
 else
     echo -e -n $green
     echo "Setup finished. No steps were required."
     echo -e -n $reset
 fi
+# Remind the user that for debug mode to work, a JVM with DCEVM is required,
+echo -e -n $green
+echo -e "Please remember that your JVM must support$white DCEVM$green for debug mode to work.$white TravaOpenJDK$green supports it natively but there isn't a JDK 16 release yet."
