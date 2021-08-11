@@ -63,12 +63,11 @@ public class ScoreboardManager {
         var fb = boards.getOrDefault(player.getUniqueId(), new FastBoard(player));
         fb.updateTitle(ChatColor.of("#A40A0A") + "" + ChatColor.BOLD + "NOOBSTERS");
         // Update the lines
-        fb.updateLines(ChatColor.of("#82abba") + "User:",
-                " " + ChatColor.WHITE + player.getName(), "", ChatColor.of("#82abba") + "Role: ",
-                ChatColor.WHITE + " " + ChatManager.colorize(getGroup(player)), "",
+        fb.updateLines(ChatColor.of("#82abba") + "User:", " " + ChatColor.WHITE + player.getName(), "",
+                ChatColor.of("#82abba") + "Role: ", ChatColor.WHITE + " " + ChatManager.colorize(getGroup(player)), "",
                 ChatColor.of("#82abba") + "Online Players: ",
-                " " + ChatColor.WHITE + instance.getCommunicatorManager().getProxyPlayers(), "",
-                ChatColor.WHITE + "noobsters.net");         
+                " " + ChatColor.WHITE + instance.getCommunicatorManager().getOnlinePlayersCountRegardlessOfProxy(), "",
+                ChatColor.WHITE + "noobsters.net");
 
         boards.putIfAbsent(player.getUniqueId(), fb);
     }

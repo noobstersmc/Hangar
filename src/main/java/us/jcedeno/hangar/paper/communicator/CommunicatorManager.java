@@ -64,12 +64,14 @@ public class CommunicatorManager implements PluginMessageListener {
 
         // Register communication channel to proxy
         Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(instance, "BungeeCord");
-        Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "BungeeCord", this);
+        final var inResult = Bukkit.getServer().getMessenger().registerIncomingPluginChannel(instance, "BungeeCord",
+                this);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> {
             try {
-                // Refresh the proxyPlayers variable.
-                getCount();
+                // Refresh the proxyPlayers variable if valid.
+                if (inResult.isValid())
+                    getCount();
                 var allData = gson.fromJson(NewCondor.getAllData(), JsonObject.class);
                 var serverData = allData.getAsJsonObject("json_info");
 
@@ -292,6 +294,16 @@ public class CommunicatorManager implements PluginMessageListener {
 
         Bukkit.getServer().sendPluginMessage(instance, "BungeeCord", out.toByteArray());
 
+    }
+
+    /**
+     * Simple util function to obtain the Players in the proxy or server if not
+     * connected to proxy.
+     * 
+     * @return The amount of players in the proxy or server.
+     */
+    public int getOnlinePlayersCountRegardlessOfProxy() {
+        return this.proxyPlayers != 0 ? this.proxyPlayers : Bukkit.getOnlinePlayers().size();
     }
 
 }
