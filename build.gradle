@@ -87,7 +87,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
     implementation 'com.google.code.gson:gson:2.8.6'
     //Caffeine
-    compile 'com.github.ben-manes.caffeine:caffeine:2.8.6'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.0.3'
     //Vault
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
     //Luckperms
@@ -135,8 +135,6 @@ shadowJar {
     relocate 'com.google.errorprone', 'shadded.com.google.errorprone'
     relocate 'io.netty', 'shadded.io.netty'
     relocate 'io.lettuce', 'shadded.io.lettuce'
-    // Reduce unused classes    
-    minimize()
 }
 // Ensure build calls shadowJar to generate the fatjar
 build.dependsOn shadowJar
