@@ -58,8 +58,7 @@ public class CommunicatorManager implements PluginMessageListener {
     public CommunicatorManager(Hangar instance) {
         this.instance = instance;
         // LETTUCE
-        this.redisClient = RedisClient.create(
-                "redis://Gxb1D0sbt3VoyvICOQKC8IwakpVdWegW@redis-11764.c73.us-east-1-2.ec2.cloud.redislabs.com:11764/0");
+        this.redisClient = RedisClient.create(System.getenv("hynx_redis_uri"));
         this.redisConnection = redisClient.connect();
         this.commands = redisConnection.async();
 
