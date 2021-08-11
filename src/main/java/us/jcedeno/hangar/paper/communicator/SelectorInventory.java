@@ -3,6 +3,8 @@ package us.jcedeno.hangar.paper.communicator;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
+import us.jcedeno.libs.rapidinv.RapidInv;
+
 /**
  * SelectorInventory
  */

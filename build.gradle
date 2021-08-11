@@ -78,7 +78,6 @@ dependencies {
     //ACF
     compile 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     //Scoreboard and GUI by Micky, maybe use helper by lucko?
-    compile 'fr.mrmicky:FastInv:3.0.2'
     compile 'fr.mrmicky:FastBoard:1.1.0'
     //Jedis
     compile 'redis.clients:jedis:3.3.0'
@@ -95,6 +94,8 @@ dependencies {
     compileOnly 'net.luckperms:api:5.1'
     //Helper
     compileOnly 'me.lucko:helper:5.6.5'
+    //RapidInv
+	implementation 'com.github.noobstersmc:RapidInv:v0.0.2.1'
 
 }
 

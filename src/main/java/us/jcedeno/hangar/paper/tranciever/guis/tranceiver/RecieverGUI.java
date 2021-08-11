@@ -16,16 +16,16 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
-import us.jcedeno.hangar.paper.tranciever.RapidInv;
+import us.jcedeno.hangar.paper.tranciever.data.ServerData;
 import us.jcedeno.hangar.paper.tranciever.guis.browser.BrowserWindow;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
-import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
-import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
+import us.jcedeno.libs.rapidinv.RapidInv;
+import us.jcedeno.libs.rapidinv.utils.SlotPos;
 
 public class RecieverGUI extends RapidInv {
     private @Getter UUID uuid;

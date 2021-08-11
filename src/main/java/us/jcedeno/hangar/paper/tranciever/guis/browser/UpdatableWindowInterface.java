@@ -2,7 +2,7 @@ package us.jcedeno.hangar.paper.tranciever.guis.browser;
 
 import java.util.Set;
 
-import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
+import us.jcedeno.hangar.paper.tranciever.data.ServerData;
 
 public interface UpdatableWindowInterface {
 

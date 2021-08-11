@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -23,14 +22,15 @@ import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
 import us.jcedeno.hangar.paper.condor.CondorRequest;
 import us.jcedeno.hangar.paper.condor.NewCondor;
-import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameCreator;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.TerrainGeneration;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.subgui.TeamSizeGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
-import us.jcedeno.hangar.paper.tranciever.utils.GeneralizedInputTask;
-import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
+import us.jcedeno.libs.rapidinv.RapidInv;
+import us.jcedeno.libs.rapidinv.utils.GeneralizedInputTask;
+import us.jcedeno.libs.rapidinv.utils.SlotPos;
 
 public class CreatorGUI extends RapidInv {
 
@@ -46,7 +46,7 @@ public class CreatorGUI extends RapidInv {
     public static int slot_for_token = SlotPos.from(4, 3);
     // Boiler-plate ends
     private TeamSizeGUI teamSizeGUI;
-    //private ScenarioSelectorGUI scenarioSelectorGUI;
+    // private ScenarioSelectorGUI scenarioSelectorGUI;
     public HumanEntity human;
 
     // Boilerplate
@@ -60,7 +60,7 @@ public class CreatorGUI extends RapidInv {
     public ItemStack SCENARIOS_ITEM = new ItemBuilder(Material.TOTEM_OF_UNDYING).name(ChatColor.YELLOW + "Scenarios")
             .lore(ChatColor.WHITE + " - Vanilla+").build();
     public ItemStack LAUNCH_ITEM = new ItemBuilder(Material.IRON_PICKAXE).flags(ItemFlag.HIDE_ATTRIBUTES)
-            .name(ChatColor.of("#f49348") + "Launch Server").lore(LoreBuilder
+            .name(ChatColor.of("#f49348") + "Launch Server").legacyLore(LoreBuilder
                     .of(ChatColor.WHITE + "Click to launch the server", ChatColor.WHITE + "with the selected config."))
             .build();
     public ItemStack HOME_ITEM = new ItemBuilder(Material.WARPED_DOOR).name(ChatColor.of("#918bf8") + "Main menu")
@@ -115,16 +115,15 @@ public class CreatorGUI extends RapidInv {
             if (teamSizeGUI == null) {
                 teamSizeGUI = new TeamSizeGUI(player, this, "Team Size");
             }
-            teamSizeGUI.open(player);
+            // teamSizeGUI.open(player);
         });
 
-        /*setItem(slot_for_scenarios, SCENARIOS_ITEM, e -> {
-            var player = (Player) e.getWhoClicked();
-            if (scenarioSelectorGUI == null) {
-                scenarioSelectorGUI = new ScenarioSelectorGUI(this, player);
-            }
-            scenarioSelectorGUI.open(player);
-        });*/
+        /*
+         * setItem(slot_for_scenarios, SCENARIOS_ITEM, e -> { var player = (Player)
+         * e.getWhoClicked(); if (scenarioSelectorGUI == null) { scenarioSelectorGUI =
+         * new ScenarioSelectorGUI(this, player); } scenarioSelectorGUI.open(player);
+         * });
+         */
 
         setItem(slot_for_launch, LAUNCH_ITEM, e -> {
             var clicker = (Player) e.getWhoClicked();

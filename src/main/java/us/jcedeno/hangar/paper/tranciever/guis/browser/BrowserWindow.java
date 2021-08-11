@@ -16,18 +16,18 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
-import us.jcedeno.hangar.paper.tranciever.RapidInv;
+import us.jcedeno.hangar.paper.tranciever.data.ServerData;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameType;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.UHCData;
 import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
-import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
-import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
+import us.jcedeno.libs.rapidinv.RapidInv;
+import us.jcedeno.libs.rapidinv.utils.SlotPos;
 
 public class BrowserWindow extends RapidInv {
 

@@ -5,8 +5,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
 
 public enum ScenariosEnum {
     CUTCLEAN("Cutclean", Material.IRON_INGOT), TIMEBOMB("TimeBomb", Material.TNT),

@@ -68,7 +68,6 @@ import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
 import co.aikar.commands.annotation.Name;
 import co.aikar.commands.annotation.Subcommand;
-import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
@@ -79,6 +78,7 @@ import us.jcedeno.hangar.paper.arena.InventorySerializer;
 import us.jcedeno.hangar.paper.arena.KillStreakHandler;
 import us.jcedeno.hangar.paper.events.KillStreakEvent;
 import us.jcedeno.hangar.paper.objects.CoordinatePair;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
 
 /**
  * InnerArena

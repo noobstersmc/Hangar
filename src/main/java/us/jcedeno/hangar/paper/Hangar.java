@@ -9,7 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitWorker;
 
 import co.aikar.commands.PaperCommandManager;
-import fr.mrmicky.fastinv.FastInvManager;
 import lombok.Getter;
 import lombok.Setter;
 import us.jcedeno.hangar.paper.chat.ChatManager;
@@ -20,7 +19,7 @@ import us.jcedeno.hangar.paper.commands.TweetCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
 import us.jcedeno.hangar.paper.condor.CondorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
-import us.jcedeno.hangar.paper.tranciever.RapidInvManager;
+import us.jcedeno.libs.rapidinv.RapidInvManager;
 
 public class Hangar extends JavaPlugin {
     private @Getter PaperCommandManager commandManager;
@@ -39,7 +38,6 @@ public class Hangar extends JavaPlugin {
     // Commands Tutorial: https://github.com/aikar/commands/wiki/Using-ACF
     @Override
     public void onEnable() {
-        FastInvManager.register(this);
         RapidInvManager.register(this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("Vault")) {
@@ -70,7 +68,6 @@ public class Hangar extends JavaPlugin {
         WorldCreator arena = new WorldCreator("arena");
         arena.environment(Environment.NORMAL);
         arena.createWorld();
-
 
     }
 

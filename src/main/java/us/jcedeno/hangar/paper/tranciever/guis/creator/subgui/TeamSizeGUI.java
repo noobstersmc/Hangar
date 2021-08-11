@@ -11,11 +11,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
-import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
+import us.jcedeno.libs.rapidinv.RapidInv;
 
 public class TeamSizeGUI extends RapidInv {
     private Integer size;

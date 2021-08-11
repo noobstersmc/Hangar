@@ -6,8 +6,8 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
 
 public enum GameType {
     UHC("uhc", TerrainGeneration.VANILLA,

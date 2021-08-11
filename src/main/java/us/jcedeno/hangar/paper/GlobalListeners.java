@@ -40,12 +40,12 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
-import us.jcedeno.hangar.paper.tranciever.RapidInv;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
+import us.jcedeno.libs.rapidinv.RapidInv;
 
 public class GlobalListeners implements Listener {
     private Hangar instance;

@@ -9,13 +9,13 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 
-import fr.mrmicky.fastinv.ItemBuilder;
 import us.jcedeno.hangar.paper.communicator.LoreBuilder;
-import us.jcedeno.hangar.paper.tranciever.RapidInv;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.CreatorGUI;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.GameCreator;
 import us.jcedeno.hangar.paper.tranciever.guis.creator.objects.ScenariosEnum;
-import us.jcedeno.hangar.paper.tranciever.utils.SlotPos;
+import us.jcedeno.libs.rapidinv.ItemBuilder;
+import us.jcedeno.libs.rapidinv.RapidInv;
+import us.jcedeno.libs.rapidinv.utils.SlotPos;
 
 public class ScenarioSelectorGUI extends RapidInv {
     private static ArrayList<Integer> defaultIntegers = getCenteredSlots();
@@ -44,11 +44,8 @@ public class ScenarioSelectorGUI extends RapidInv {
 
             });
         }
-        setItem(SlotPos.from(4, 5),
-                new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.YELLOW + "Go back")
-                        .lore(LoreBuilder.of(ChatColor.WHITE + "Click to return."))
-                        .build(),
-                e -> {
+        setItem(SlotPos.from(4, 5), new ItemBuilder(Material.ACACIA_DOOR).name(ChatColor.YELLOW + "Go back")
+                .legacyLore(LoreBuilder.of(ChatColor.WHITE + "Click to return.")).build(), e -> {
                     creator.getInventory().getItem(CreatorGUI.slot_for_scenarios)
                             .setLore(getScenariosLore(creator.getGameCreator()));
                     creator.open(player);

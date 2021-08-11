@@ -33,11 +33,11 @@ import net.md_5.bungee.api.ChatColor;
 import us.jcedeno.hangar.paper.Hangar;
 import us.jcedeno.hangar.paper.condor.NewCondor;
 import us.jcedeno.hangar.paper.objects.ProxyChangeInPlayersEvent;
-import us.jcedeno.hangar.paper.tranciever.RapidInv;
+import us.jcedeno.hangar.paper.tranciever.data.ServerData;
 import us.jcedeno.hangar.paper.tranciever.guis.browser.BrowserWindow;
 import us.jcedeno.hangar.paper.tranciever.guis.tranceiver.RecieverGUI;
-import us.jcedeno.hangar.paper.tranciever.utils.ServerData;
 import us.jcedeno.hangar.paper.uhc.GameData;
+import us.jcedeno.libs.rapidinv.RapidInv;
 
 public class CommunicatorManager implements PluginMessageListener {
     private Hangar instance;

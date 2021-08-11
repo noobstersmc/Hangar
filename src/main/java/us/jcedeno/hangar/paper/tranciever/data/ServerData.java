@@ -1,4 +1,4 @@
-package us.jcedeno.hangar.paper.tranciever.utils;
+package us.jcedeno.hangar.paper.tranciever.data;
 
 import java.util.HashMap;
 import java.util.UUID;
