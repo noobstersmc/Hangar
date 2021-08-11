@@ -11,18 +11,28 @@ plugins{
     id "io.freefair.lombok" version '5.3.0'
 }
 
+/** Set java target and compatibility */
 sourceCompatibility = 11
 targetCompatibility = 11
 
+/** Compiling and  Javadocs enconding options */
+compileJava.options.encoding = 'UTF-8'
+javadoc {
+    options.encoding = 'UTF-8'
+}
+
+/** Group and versioning for distribution */
 group = 'net.noobsters'
 version = '0.1B-SNAPSHOT'
 
+/** Publishing */
 publishing {
     publications {
         maven(MavenPublication) {
             from components.java
         }
     }
+    // Private Noobsters Repo, currently down.
     repositories {
         maven {
             url 'https://dev.repo.noobsters.net/'
@@ -34,6 +44,7 @@ publishing {
     }
 }
 
+/** Repos */
 repositories {
     mavenCentral()
     jcenter()
@@ -53,6 +64,7 @@ repositories {
 }
 
 
+/** Dependencies */
 dependencies {
     //Unirest
     compile 'com.konghq:unirest-java:3.11.09'
@@ -86,18 +98,30 @@ dependencies {
 
 }
 
+/** Process Resources methods to include .ymls in resource directory into the final jar */
 processResources {
     from(sourceSets.main.resources.srcDirs) {
         expand 'version': project.version
         include 'plugin.yml'
     }
 }
-compileJava.options.encoding = 'UTF-8'
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
+/** Include sources jar on build. */
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+/** Include javadocs on build. */
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+/** Add to the output artifacts. */
+artifacts {
+    archives sourcesJar
+    archives javadocJar
 }
 
+/** Relocations for fatjar */
 shadowJar {
     relocate 'co.aikar.commands', 'shadded.acf'
     relocate 'co.aikar.locales', 'shadded.acf.locales'
@@ -110,9 +134,10 @@ shadowJar {
     relocate 'com.google.errorprone', 'shadded.com.google.errorprone'
     relocate 'io.netty', 'shadded.io.netty'
     relocate 'io.lettuce', 'shadded.io.lettuce'
-    
+    // Reduce unused classes    
     minimize()
 }
-
-
+// Ensure build calls shadowJar to generate the fatjar
 build.dependsOn shadowJar
+
+

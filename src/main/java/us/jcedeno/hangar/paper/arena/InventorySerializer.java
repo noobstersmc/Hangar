@@ -27,7 +27,6 @@ public class InventorySerializer {
      *
      * A method to serialize an {@link ItemStack} array to Base64 String.
      *
-     * <p />
      *
      * Based off of {@link #toBase64(Inventory)}.
      *
@@ -59,7 +58,6 @@ public class InventorySerializer {
     /**
      * A method to serialize an inventory to Base64 string.
      *
-     * <p />
      *
      * Special thanks to Comphenix in the Bukkit forums or also known as aadnk on
      * GitHub.
@@ -95,7 +93,6 @@ public class InventorySerializer {
      *
      * A method to get an {@link Inventory} from an encoded, Base64, string.
      *
-     * <p />
      *
      * Special thanks to Comphenix in the Bukkit forums or also known as aadnk on
      * GitHub.
@@ -127,7 +124,6 @@ public class InventorySerializer {
     /**
      * Gets an array of ItemStacks from Base64 string.
      *
-     * <p />
      *
      * Base off of {@link #fromBase64(String)}.
      *
@@ -140,7 +136,6 @@ public class InventorySerializer {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
             BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
             ItemStack[] items = new ItemStack[dataInput.readInt()];
-
 
             // Read the serialized inventory
             for (int i = 0; i < items.length; i++) {

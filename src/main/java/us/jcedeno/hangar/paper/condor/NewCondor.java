@@ -106,7 +106,6 @@ public class NewCondor {
      * Obtain a Condor User's profile status including outstanding credits, active
      * instances, instance limit, available credits, and array of instances.
      * 
-     * @param auth User's auth token
      * @return JSON containing amounts, limit, and instances as JsonArray.
      * @throws IOException
      */
