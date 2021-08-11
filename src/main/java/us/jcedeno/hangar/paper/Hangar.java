@@ -17,7 +17,6 @@ import us.jcedeno.hangar.paper.commands.DebugCMD;
 import us.jcedeno.hangar.paper.commands.SlotCMD;
 import us.jcedeno.hangar.paper.commands.TweetCMD;
 import us.jcedeno.hangar.paper.communicator.CommunicatorManager;
-import us.jcedeno.hangar.paper.condor.CondorManager;
 import us.jcedeno.hangar.paper.scoreboard.ScoreboardManager;
 import us.jcedeno.libs.rapidinv.RapidInvManager;
 
@@ -30,7 +29,6 @@ public class Hangar extends JavaPlugin {
     private @Getter GlobalListeners globalListeners;
     private @Getter Decoration decoration;
     private @Getter LPManager lpManager;
-    private @Getter CondorManager condorManager;
     private @Getter @Setter int maxSlots = 100;
 
     // GUI tutorial: https://github.com/MrMicky-FR/FastInv
@@ -61,7 +59,6 @@ public class Hangar extends JavaPlugin {
         var gson = new Gson();
         arena.loadRestoreTaks(gson, Bukkit.getConsoleSender());
         arena.loadPlayerData(gson, Bukkit.getConsoleSender());
-        this.condorManager = new CondorManager(this);
 
         this.commandManager.registerCommand(new DebugCMD(this));
 
