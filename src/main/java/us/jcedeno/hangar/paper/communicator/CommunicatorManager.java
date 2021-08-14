@@ -1,5 +1,8 @@
 package us.jcedeno.hangar.paper.communicator;
 
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.TextColor.fromHexString;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -58,7 +61,7 @@ public class CommunicatorManager implements PluginMessageListener {
     public CommunicatorManager(Hangar instance) {
         this.instance = instance;
         // LETTUCE
-        this.redisClient = RedisClient.create(System.getenv("hynx_redis_uri"));
+        this.redisClient = RedisClient.create(System.getenv("HYNX_REDIS_URI"));
         this.redisConnection = redisClient.connect();
         this.commands = redisConnection.async();
 
@@ -189,9 +192,12 @@ public class CommunicatorManager implements PluginMessageListener {
     public void setMetaForUHC(ItemMeta meta, GameData game_data) {
 
         final var stage = game_data.getGameStage();
+        
         final var titleColor = ChatColor.of("#82abba");
         var name = (game_data.getHostname() != null ? game_data.getHostname() + "'s " : "") + "UHC";
         meta.setDisplayName(ChatColor.of("#f64658") + "" + ChatColor.BOLD + name);
+
+        Bukkit.broadcast(text("Hola que hace", fromHexString("#f64658")));
 
         switch (stage.toLowerCase()) {
             case "ingame": {

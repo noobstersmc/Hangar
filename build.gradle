@@ -69,7 +69,7 @@ dependencies {
     //Unirest
     compile 'com.konghq:unirest-java:3.11.09'
     //Paper
-    compileOnly 'com.destroystokyo.paper:paper-api:1.16.3-R0.1-SNAPSHOT'
+    compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
     //Lombok
 	compileOnly 'org.projectlombok:lombok:1.18.12'
 	annotationProcessor 'org.projectlombok:lombok:1.18.12'
@@ -96,6 +96,9 @@ dependencies {
     compileOnly 'me.lucko:helper:5.6.5'
     //RapidInv
 	implementation 'com.github.noobstersmc:RapidInv:v0.0.2.1'
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-text
+    implementation 'org.apache.commons:commons-text:1.9'
+
 
 }
 

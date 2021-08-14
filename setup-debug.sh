@@ -109,3 +109,6 @@ fi
 # Remind the user that for debug mode to work, a JVM with DCEVM is required,
 echo -e -n $green
 echo -e "Please remember that your JVM must support$white DCEVM$green for debug mode to work.$white TravaOpenJDK$green supports it natively but there isn't a JDK 16 release yet."
+
+
+echo -e -n $reset
